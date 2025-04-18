@@ -1,0 +1,17 @@
+env/
+venv/
+ENV/
+.venv/
+*.log
+*.pot
+*.pyc
+db.sqlite3
+instance/
+.local/
+media/
+staticfiles/
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
