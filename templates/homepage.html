@@ -1,0 +1,710 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome to Haki{% endblock %}
+
+{% block content %}
+    <style>
+        :root {
+            --ocean-blue: #0077b6;
+            --ocean-blue-light: #90e0ef;
+            --ocean-blue-dark: #023e8a;
+            --gold: #ffd700;
+            --gold-light: #ffebb7;
+            --gold-dark: #b7950b;
+        }
+
+        body {
+            font-family: 'Catamaran', sans-serif;
+            background-color: bac;
+            color: #333;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--ocean-blue-dark), var(--ocean-blue));
+            color: white;
+            padding: 100px 0 70px;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 4px solid var(--gold);
+        }
+
+        .hero-section:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("/api/placeholder/1200/800") center/cover no-repeat;
+            opacity: 0.2;
+            z-index: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-title {
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .hero-tagline {
+            font-weight: 400;
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            background: linear-gradient(45deg, var(--ocean-blue), var(--ocean-blue-light));
+            color: white;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .card-header:before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            top: -25%;
+            left: -25%;
+            transform: rotate(45deg);
+            z-index: -1;
+        }
+
+        .icon-wrapper {
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--gold);
+            padding: 15px;
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .card-title {
+            color: var(--ocean-blue-dark);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .card-text {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+        }
+
+        .btn-custom {
+            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
+            border: none;
+            color: #333;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn-custom:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+
+        .btn-custom:hover:before {
+            left: 100%;
+        }
+
+        .btn-custom:hover {
+            box-shadow: 0 5px 15px rgba(183, 149, 11, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .how-it-works {
+            padding: 80px 0;
+            background-color: #f8f9fa;
+        }
+
+        .section-title {
+            color: var(--ocean-blue-dark);
+            font-weight: 700;
+            margin-bottom: 40px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title:after {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 4px;
+            background: var(--gold);
+            bottom: -10px;
+            left: 25%;
+        }
+
+        .step-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            border-left: 4px solid var(--ocean-blue);
+        }
+
+        .step-card:before {
+            content: "";
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: var(--gold-light);
+            border-radius: 50%;
+            top: -15px;
+            right: -15px;
+            z-index: -1;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            background: var(--ocean-blue);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 36px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .step-title {
+            color: var(--ocean-blue-dark);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, var(--ocean-blue-dark), var(--ocean-blue));
+            color: white;
+            padding: 60px 0 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer:before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 50px;
+            background: var(--gold);
+            top: 0;
+            left: -50%;
+            transform: rotate(-1deg) translateY(-25px);
+        }
+
+        .footer-title {
+            font-weight: 700;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-title:after {
+            content: "";
+            position: absolute;
+            width: 40px;
+            height: 3px;
+            background: var(--gold);
+            bottom: -10px;
+            left: 0;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            transform: translateX(5px);
+        }
+
+        .footer-links i {
+            margin-right: 8px;
+            color: var(--gold);
+        }
+
+        .social-links {
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            color: white;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: var(--gold);
+            color: var(--ocean-blue-dark);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+        }
+
+        .testimonial-section {
+            padding: 80px 0;
+            background-color: white;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            position: relative;
+            margin-top: 40px;
+        }
+
+        .testimonial-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: absolute;
+            top: -40px;
+            left: 30px;
+            border: 4px solid white;
+            background-color: var(--ocean-blue-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        .testimonial-content {
+            margin-top: 20px;
+            font-style: italic;
+            color: #555;
+        }
+
+        .testimonial-author {
+            margin-top: 20px;
+            font-weight: 600;
+            color: var(--ocean-blue-dark);
+        }
+
+        .testimonial-role {
+            color: var(--gold-dark);
+            font-size: 0.9rem;
+        }
+
+        .impact-counter {
+            background: linear-gradient(45deg, var(--ocean-blue-dark), var(--ocean-blue));
+            padding: 60px 0;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .impact-counter:before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: rgba(255,255,255,0.05);
+            top: 0;
+            left: -50%;
+            transform: rotate(-10deg);
+            z-index: 0;
+        }
+
+        .counter-item {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .counter-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .counter-text {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s, transform 0.8s;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Pulse animation for hero CTA */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+            }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Floating animation for feature icons */
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+        
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container hero-content">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-8 animate__animated animate__fadeIn">
+                    <h1 class="hero-title animate__animated animate__fadeInUp">Making Justice Accessible</h1>
+                    <p class="hero-tagline animate__animated animate__fadeInUp animate__delay-1s">Connecting NGOs, lawyers, and donors to support legal tech cases on the blockchain</p>
+                    <a href="#learn-more" class="btn btn-custom btn-lg pulse animate__animated animate__fadeInUp animate__delay-2s">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section py-5" id="learn-more">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 animate-on-scroll">
+                    <div class="card h-100">
+                        <div class="card-header text-center">
+                            <div class="icon-wrapper float">
+                                <i class="fas fa-balance-scale feature-icon"></i>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">For NGOs</h5>
+                            <p class="card-text">List legal cases, set bounties, and find qualified lawyers to tackle important justice issues.</p>
+                            <a href="#" class="btn btn-custom">Register as NGO</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 animate-on-scroll">
+                    <div class="card h-100">
+                        <div class="card-header text-center">
+                            <div class="icon-wrapper float">
+                                <i class="fas fa-gavel feature-icon"></i>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">For Lawyers</h5>
+                            <p class="card-text">Find cases that match your expertise, demonstrate impact, and earn bounties for your work.</p>
+                            <a href="#" class="btn btn-custom">Register as Lawyer</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 animate-on-scroll">
+                    <div class="card h-100">
+                        <div class="card-header text-center">
+                            <div class="icon-wrapper float">
+                                <i class="fas fa-hand-holding-heart feature-icon"></i>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">For Donors</h5>
+                            <p class="card-text">Support important legal cases, track your impact, and help bring justice to those who need it most.</p>
+                            <a href="#" class="btn btn-custom">Register as Donor</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Impact Counter Section -->
+    <section class="impact-counter">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-4 animate-on-scroll">
+                    <div class="counter-item">
+                        <div class="counter-number">500+</div>
+                        <div class="counter-text">Cases Supported</div>
+                    </div>
+                </div>
+                <div class="col-md-4 animate-on-scroll">
+                    <div class="counter-item">
+                        <div class="counter-number">250+</div>
+                        <div class="counter-text">Legal Professionals</div>
+                    </div>
+                </div>
+                <div class="col-md-4 animate-on-scroll">
+                    <div class="counter-item">
+                        <div class="counter-number">$2M+</div>
+                        <div class="counter-text">Impact Generated</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-12">
+                    <h2 class="section-title animate-on-scroll">How It Works</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-4 animate-on-scroll">
+                    <div class="step-card">
+                        <span class="step-number">1</span>
+                        <h4 class="step-title">NGOs List Cases</h4>
+                        <p>NGOs create detailed legal case listings with scope, impact potential, and bounty information on our secure platform.</p>
+                        <i class="fas fa-file-contract fa-2x mt-3" style="color: var(--ocean-blue-light);"></i>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4 animate-on-scroll">
+                    <div class="step-card">
+                        <span class="step-number">2</span>
+                        <h4 class="step-title">Lawyers Apply</h4>
+                        <p>Qualified legal professionals review case requirements, apply with their credentials, and propose solutions.</p>
+                        <i class="fas fa-user-tie fa-2x mt-3" style="color: var(--ocean-blue-light);"></i>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4 animate-on-scroll">
+                    <div class="step-card">
+                        <span class="step-number">3</span>
+                        <h4 class="step-title">Donors</h4>
+                        <p>Donors fund cases they care about, track progress, and see tangible impact from their contributions.</p>
+                        <i class="fas fa-coins fa-2x mt-3" style="color: var(--ocean-blue-light);"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonial-section">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-12">
+                    <h2 class="section-title animate-on-scroll">Success Stories</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-4 animate-on-scroll">
+                    <div class="testimonial-card">
+                        <div class="testimonial-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="testimonial-content">
+                            "HakiChain helped our organization find qualified legal support for a complex environmental justice case. The platform's transparency and efficiency made all the difference."
+                        </div>
+                        <div class="testimonial-author">Sarah Johnson</div>
+                        <div class="testimonial-role">Environmental NGO Director</div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4 animate-on-scroll">
+                    <div class="testimonial-card">
+                        <div class="testimonial-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="testimonial-content">
+                            "As a human rights lawyer, HakiChain connects me with meaningful cases where I can make a real difference while being fairly compensated for my expertise."
+                        </div>
+                        <div class="testimonial-author">David Chen</div>
+                        <div class="testimonial-role">Human Rights Attorney</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="cta-section py-5" style="background-color: var(--ocean-blue-light);">
+        <div class="container text-center">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 animate-on-scroll">
+                    <h3 class="mb-4" style="color: var(--ocean-blue-dark);">Ready to Join the Justice Movement?</h3>
+                    <p class="mb-4">Be part of our growing community working to make legal support accessible to all.</p>
+                    <a href="#" class="btn btn-custom btn-lg pulse">Get Started Today</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h4 class="footer-title">HakiChain</h4>
+                    <p>Making justice accessible through technology, transparency, and collaboration.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h4 class="footer-title">Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> About</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Cases</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h4 class="footer-title">For Users</h4>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> NGO Registration</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Lawyer Portal</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Donor Dashboard</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Legal Resources</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h4 class="footer-title">Contact Us</h4>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-map-marker-alt"></i> 123 Justice Ave, City</a></li>
+                        <li><a href="#"><i class="fas fa-envelope"></i> info@hakichain.org</a></li>
+                        <li><a href="#"><i class="fas fa-phone"></i> +1 (555) 123-4567</a></li>
+                        <li><a href="#"><i class="fas fa-headset"></i> Support Center</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 text-center copyright">
+                    <p>&copy; 2025 HakiChain. All rights reserved. Powered by blockchain technology.</p>
+                    <div class="mt-2">
+                        <a href="#" class="me-3" style="color: rgba(255,255,255,0.6); text-decoration: none;">Privacy Policy</a>
+                        <a href="#" class="me-3" style="color: rgba(255,255,255,0.6); text-decoration: none;">Terms of Service</a>
+                        <a href="#" style="color: rgba(255,255,255,0.6); text-decoration: none;">Cookie Policy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Animation on scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            const animateElements = document.querySelectorAll('.animate-on-scroll');
+            
+            function checkInView() {
+                animateElements.forEach(function(element) {
+                    const elementTop = element.getBoundingClientRect().top;
+                    const windowHeight = window.innerHeight;
+                    
+                    if (elementTop < windowHeight - 100) {
+                        element.classList.add('visible');
+                    }
+                });
+            }
+            
+            // Initial check
+            checkInView();
+            
+            // Check on scroll
+            window.addEventListener('scroll', checkInView);
+        });
+    </script>
+</body>
+</html>
+{% endblock %}

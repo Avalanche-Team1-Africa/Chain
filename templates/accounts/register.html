@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - HakIChain{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Register</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">Email address</label>
+                        <input type="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                               id="{{ form.email.id_for_label }}" name="{{ form.email.name }}" 
+                               value="{{ form.email.value|default:'' }}">
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.email.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.role.id_for_label }}" class="form-label">I am registering as</label>
+                        <select class="form-select {% if form.role.errors %}is-invalid{% endif %}" 
+                                id="{{ form.role.id_for_label }}" name="{{ form.role.name }}">
+                            <option value="" selected disabled>Select your role</option>
+                            <option value="NGO" {% if form.role.value == 'NGO' %}selected{% endif %}>NGO</option>
+                            <option value="LAWYER" {% if form.role.value == 'LAWYER' %}selected{% endif %}>Lawyer</option>
+                            <option value="DONOR" {% if form.role.value == 'DONOR' %}selected{% endif %}>Donor</option>
+                        </select>
+                        {% if form.role.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.role.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" 
+                               id="{{ form.phone_number.id_for_label }}" name="{{ form.phone_number.name }}"
+                               value="{{ form.phone_number.value|default:'' }}">
+                        {% if form.phone_number.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.phone_number.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                        <input type="password" class="form-control {% if form.password1.errors %}is-invalid{% endif %}" 
+                               id="{{ form.password1.id_for_label }}" name="{{ form.password1.name }}">
+                        {% if form.password1.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.password1.errors.0 }}
+                            </div>
+                        {% else %}
+                            <div class="form-text">
+                                Your password must be 8+ characters, not commonly used, and not entirely numeric.
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control {% if form.password2.errors %}is-invalid{% endif %}" 
+                               id="{{ form.password2.id_for_label }}" name="{{ form.password2.name }}">
+                        {% if form.password2.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.password2.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Register</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <p class="mb-0">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

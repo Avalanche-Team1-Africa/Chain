@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if user.role == 'NGO' %}
+        NGO Profile Setup
+    {% elif user.role == 'LAWYER' %}
+        Lawyer Profile Setup
+    {% elif user.role == 'DONOR' %}
+        Donor Profile Setup
+    {% endif %}
+    - Legal Platform
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    {% if user.role == 'NGO' %}
+                        NGO Profile Setup
+                    {% elif user.role == 'LAWYER' %}
+                        Lawyer Profile Setup
+                    {% elif user.role == 'DONOR' %}
+                        Donor Profile Setup
+                    {% endif %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    {% if user.role == 'NGO' %}
+                        <div class="mb-3">
+                            <label for="{{ form.organization_name.id_for_label }}" class="form-label">Organization Name</label>
+                            <input type="text" class="form-control {% if form.organization_name.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.organization_name.id_for_label }}" name="{{ form.organization_name.name }}"
+                                   value="{{ form.organization_name.value|default:'' }}">
+                            {% if form.organization_name.errors %}
+                                <div class="invalid-feedback">{{ form.organization_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.registration_number.id_for_label }}" class="form-label">Registration Number</label>
+                            <input type="text" class="form-control {% if form.registration_number.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.registration_number.id_for_label }}" name="{{ form.registration_number.name }}"
+                                   value="{{ form.registration_number.value|default:'' }}">
+                            {% if form.registration_number.errors %}
+                                <div class="invalid-feedback">{{ form.registration_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            <textarea class="form-control {% if form.description.errors %}is-invalid{% endif %}" 
+                                      id="{{ form.description.id_for_label }}" name="{{ form.description.name }}" 
+                                      rows="4">{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.website.id_for_label }}" class="form-label">Website (optional)</label>
+                            <input type="url" class="form-control {% if form.website.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.website.id_for_label }}" name="{{ form.website.name }}"
+                                   value="{{ form.website.value|default:'' }}">
+                            {% if form.website.errors %}
+                                <div class="invalid-feedback">{{ form.website.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+                            <textarea class="form-control {% if form.address.errors %}is-invalid{% endif %}" 
+                                      id="{{ form.address.id_for_label }}" name="{{ form.address.name }}" 
+                                      rows="3">{{ form.address.value|default:'' }}</textarea>
+                            {% if form.address.errors %}
+                                <div class="invalid-feedback">{{ form.address.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.logo.id_for_label }}" class="form-label">Logo (optional)</label>
+                            <input type="file" class="form-control {% if form.logo.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.logo.id_for_label }}" name="{{ form.logo.name }}">
+                            {% if form.logo.errors %}
+                                <div class="invalid-feedback">{{ form.logo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.verification_documents.id_for_label }}" class="form-label">Verification Documents</label>
+                            <input type="file" class="form-control {% if form.verification_documents.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.verification_documents.id_for_label }}" name="{{ form.verification_documents.name }}">
+                            {% if form.verification_documents.errors %}
+                                <div class="invalid-feedback">{{ form.verification_documents.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success">Save Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
