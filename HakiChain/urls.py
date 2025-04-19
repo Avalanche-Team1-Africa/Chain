@@ -18,11 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('', include('core.urls')),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
+    path('cases/', include(('cases.urls', 'cases'), namespace='cases')),
+    path('', RedirectView.as_view(pattern_name='accounts:dashboard'), name='home'),
 ]
 
 if settings.DEBUG:
