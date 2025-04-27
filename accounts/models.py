@@ -55,7 +55,7 @@ class NGOProfile(models.Model):
     
     def __str__(self):
         return self.organization_name
-
+    
 class LawyerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='lawyer_profile')
     full_name = models.CharField(max_length=255)
@@ -64,11 +64,17 @@ class LawyerProfile(models.Model):
     experience_years = models.PositiveIntegerField()
     education = models.TextField()
     bio = models.TextField()
+    is_available = models.BooleanField(default=True)
     profile_picture = models.ImageField(upload_to='lawyer_profiles/', blank=True, null=True)
     verification_documents = models.FileField(upload_to='lawyer_verification/', blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
-    
+
+    def save(self, *args, **kwargs):
+        if not self.experience_years:
+            self.experience_years = 0  # Set a default value if missing
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.full_name
 
