@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Settings</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="list">Profile</a>
+                    <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="list">Security</a>
+                    <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">Notifications</a>
+                    {% if user.is_staff %}
+                    <a href="#admin" class="list-group-item list-group-item-action" data-bs-toggle="list">Admin Settings</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="tab-content">
+                <!-- Profile Settings -->
+                <div class="tab-pane fade show active" id="profile">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Profile Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="#" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="form_type" value="profile">
+                                
+                                <div class="mb-3">
+                                    <label for="profile_picture" class="form-label">Profile Picture</label>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="me-3">
+                                            {% if user.profile.avatar %}
+                                                <img src="{{ user.profile.avatar.url }}" alt="Profile Picture" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                                                    <span class="fs-1">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <input type="file" class="form-control" id="profile_picture" name="avatar">
+                                            <small class="form-text text-muted">Recommended size: 300x300 pixels</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="first_name" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="last_name" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.profile.phone|default:'' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="bio" class="form-label">Bio</label>
+                                    <textarea class="form-control" id="bio" name="bio" rows="3">{{ user.profile.bio|default:'' }}</textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Settings -->
+                <div class="tab-pane fade" id="security">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Security Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="#">
+                                {% csrf_token %}
+                                <input type="hidden" name="form_type" value="password">
+                                
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" id="current_password" name="current_password">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Change Password</button>
+                            </form>
+                            
+                            <hr>
+                            
+                            <h5 class="mb-3">Two-Factor Authentication</h5>
+                            {% if user.profile.two_factor_enabled %}
+                                <div class="alert alert-success">
+                                    <i class="bi bi-shield-check"></i> Two-factor authentication is enabled.
+                                </div>
+                                <form method="post" action="#">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="form_type" value="disable_2fa">
+                                    <button type="submit" class="btn btn-danger">Disable Two-Factor Authentication</button>
+                                </form>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-shield-exclamation"></i> Two-factor authentication is not enabled. We recommend enabling it for better account security.
+                                </div>
+                                <a href="#" class="btn btn-success">Enable Two-Factor Authentication</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notification Settings -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Notification Preferences</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="#">
+                                {% csrf_token %}
+                                <input type="hidden" name="form_type" value="notifications">
+                                
+                                <h6 class="mb-3">Email Notifications</h6>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="new_case" name="email_new_case" {% if user.profile.email_new_case %}checked{% endif %}>
+                                    <label class="form-check-label" for="new_case">New case assignments</label>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="case_update" name="email_case_update" {% if user.profile.email_case_update %}checked{% endif %}>
+                                    <label class="form-check-label" for="case_update">Case updates</label>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="announcements" name="email_announcements" {% if user.profile.email_announcements %}checked{% endif %}>
+                                    <label class="form-check-label" for="announcements">Announcements</label>
+                                </div>
+                                
+                                <h6 class="mb-3 mt-4">In-App Notifications</h6>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="app_new_message" name="app_new_message" {% if user.profile.app_new_message %}checked{% endif %}>
+                                    <label class="form-check-label" for="app_new_message">New messages</label>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="app_task_reminder" name="app_task_reminder" {% if user.profile.app_task_reminder %}checked{% endif %}>
+                                    <label class="form-check-label" for="app_task_reminder">Task reminders</label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Preferences</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Admin Settings -->
+                {% if user.is_staff %}
+                <div class="tab-pane fade" id="admin">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Administrative Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> These settings are only available to administrative users.
+                            </div>
+                            
+                            <h6 class="mb-3">User Management</h6>
+                            <p>Access the user management panel to add, remove, or modify user roles.</p>
+                            <a href="/admin/auth/user/" class="btn btn-primary mb-4">User Management</a>
+                            
+                            <h6 class="mb-3">System Settings</h6>
+                            <p>Configure system-wide settings and parameters.</p>
+                            <a href="/admin/core/settings/" class="btn btn-primary">System Settings</a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enable Bootstrap tabs
+    document.addEventListener('DOMContentLoaded', function() {
+        const triggerTabList = [].slice.call(document.querySelectorAll('[data-bs-toggle="list"]'));
+        triggerTabList.forEach(function(triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+    });
+</script>
+{% endblock %}
