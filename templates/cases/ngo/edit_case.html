@@ -1,0 +1,390 @@
+{% extends 'cases/ngo/base_ngo.html' %}
+{% block page_title %}Edit Legal Case{% endblock %}
+{% block ngo_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Edit Legal Case: {{ case.title }}</h6>
+        <div>
+            <a href="{% url 'cases:case_history' pk=case.pk %}" class="btn btn-sm btn-secondary">
+                <i class="fas fa-history"></i> Case History
+            </a>
+            <a href="{% url 'cases:case_detail' pk=case.pk %}" class="btn btn-sm btn-info">
+                <i class="fas fa-arrow-left"></i> Back to Case
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Basic Case Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Basic Case Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Case Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.case_file_number.id_for_label }}" class="form-label">Case File Number</label>
+                            {{ form.case_file_number }}
+                            {% if form.case_file_number.errors %}
+                                <div class="invalid-feedback d-block">{{ form.case_file_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">Legal Category</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="invalid-feedback d-block">{{ form.category.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Case Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
+                            {{ form.location }}
+                            {% if form.location.errors %}
+                                <div class="invalid-feedback d-block">{{ form.location.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.jurisdiction.id_for_label }}" class="form-label">Jurisdiction</label>
+                            {{ form.jurisdiction }}
+                            {% if form.jurisdiction.errors %}
+                                <div class="invalid-feedback d-block">{{ form.jurisdiction.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.urgency.id_for_label }}" class="form-label">Urgency</label>
+                            {{ form.urgency }}
+                            {% if form.urgency.errors %}
+                                <div class="invalid-feedback d-block">{{ form.urgency.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback d-block">{{ form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.hearing_date.id_for_label }}" class="form-label">Next Hearing Date</label>
+                            <div class="input-group date" id="hearingDatepicker" data-target-input="nearest">
+                                {{ form.hearing_date }}
+                                <div class="input-group-append" data-target="#hearingDatepicker" data-toggle="datetimepicker">
+                                    <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                </div>
+                            </div>
+                            {% if form.hearing_date.errors %}
+                                <div class="invalid-feedback d-block">{{ form.hearing_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lawyer Assignment -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Lawyer Assignment</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.assigned_lawyer.id_for_label }}" class="form-label">Assigned Lawyer(s)</label>
+                        {{ form.assigned_lawyer }}
+                        {% if form.assigned_lawyer.errors %}
+                            <div class="invalid-feedback d-block">{{ form.assigned_lawyer.errors }}</div>
+                        {% endif %}
+                        <div class="mt-2">
+                            <a href="{% url 'cases:invite_lawyers' case_pk=case.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-user-plus"></i> Invite Lawyers
+                            </a>
+                            <a href="{% url 'cases:view_applications' case_pk=case.pk %}" class="btn btn-sm btn-outline-info">                                <i class="fas fa-users"></i> View Applicants 
+                                {% if case.applicant_count %}<span class="badge bg-primary">{{ case.applicant_count }}</span>{% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bounty & Funding -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Bounty & Funding</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.bounty_amount.id_for_label }}" class="form-label">Bounty Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.bounty_amount }}
+                            </div>
+                            {% if form.bounty_amount.errors %}
+                                <div class="invalid-feedback d-block">{{ form.bounty_amount.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.funding_allocated.id_for_label }}" class="form-label">Total Funding Allocated</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.funding_allocated }}
+                            </div>
+                            {% if form.funding_allocated.errors %}
+                                <div class="invalid-feedback d-block">{{ form.funding_allocated.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Current donations: ${{ case.total_donations|default:"0.00" }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.bounty_description.id_for_label }}" class="form-label">Bounty Description & Requirements</label>
+                        {{ form.bounty_description }}
+                        {% if form.bounty_description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.bounty_description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        {{ form.is_bounty_active }}
+                        <label class="form-check-label" for="{{ form.is_bounty_active.id_for_label }}">
+                            Make this bounty active and visible to lawyers
+                        </label>
+                        {% if form.is_bounty_active.errors %}
+                            <div class="invalid-feedback d-block">{{ form.is_bounty_active.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <a href="{% url 'cases:funding_history' pk=case.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-donate"></i> View Donation History
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Case Documentation -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Case Documentation</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.documents.id_for_label }}" class="form-label">Upload New Documents</label>
+                        {{ form.documents }}
+                        {% if form.documents.errors %}
+                            <div class="invalid-feedback d-block">{{ form.documents.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">You can select multiple files. Accepted formats: PDF, DOC, DOCX, JPG, PNG</small>
+                    </div>
+                    
+                    {% if case.documents.exists %}
+                    <div class="table-responsive mt-3">
+                        <h6>Existing Documents</h6>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Document Name</th>
+                                    <th>Uploaded By</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc in case.documents.all %}
+                                <tr>
+                                    <td>{{ doc.name }}</td>
+                                    <td>{{ doc.uploaded_by.get_full_name }}</td>
+                                    <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'cases:delete_document' pk=doc.pk %}" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Progress Tracking -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Progress Tracking</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.completion_percentage.id_for_label }}" class="form-label">Completion Percentage</label>
+                        <div class="input-group">
+                            {{ form.completion_percentage }}
+                            <span class="input-group-text">%</span>
+                        </div>
+                        {% if form.completion_percentage.errors %}
+                            <div class="invalid-feedback d-block">{{ form.completion_percentage.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.milestones.id_for_label }}" class="form-label">Milestones</label>
+                        {{ form.milestones }}
+                        {% if form.milestones.errors %}
+                            <div class="invalid-feedback d-block">{{ form.milestones.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        {{ form.is_completed }}
+                        <label class="form-check-label" for="{{ form.is_completed.id_for_label }}">
+                            Mark case as completed
+                        </label>
+                        {% if form.is_completed.errors %}
+                            <div class="invalid-feedback d-block">{{ form.is_completed.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <a href="{% url 'cases:case_updates' pk=case.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-tasks"></i> View Progress Updates
+                        </a>
+                        {% if case.is_completed %}
+                        <a href="{% url 'cases:approve_completion' pk=case.pk %}" class="btn btn-sm btn-success">
+                            <i class="fas fa-check-circle"></i> Approve & Release Bounty
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Additional Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.tags.id_for_label }}" class="form-label">Tags</label>
+                        {{ form.tags }}
+                        <small class="form-text text-muted">Enter comma-separated tags</small>
+                        {% if form.tags.errors %}
+                            <div class="invalid-feedback d-block">{{ form.tags.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">Internal Notes</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">{{ form.notes.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">These notes are only visible to NGO staff</small>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        {{ form.is_public }}
+                        <label class="form-check-label" for="{{ form.is_public.id_for_label }}">
+                            Make case public (visible to donors and the public)
+                        </label>
+                        {% if form.is_public.errors %}
+                            <div class="invalid-feedback d-block">{{ form.is_public.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a href="{% url 'cases:case_detail' pk=case.pk %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    $(function() {
+        // Initialize date pickers
+        $('#hearingDatepicker').datetimepicker({
+            format: 'YYYY-MM-DD',
+            icons: {
+                time: 'fas fa-clock',
+                date: 'fas fa-calendar',
+                up: 'fas fa-arrow-up',
+                down: 'fas fa-arrow-down',
+                previous: 'fas fa-chevron-left',
+                next: 'fas fa-chevron-right',
+                today: 'fas fa-calendar-check',
+                clear: 'fas fa-trash',
+                close: 'fas fa-times'
+            }
+        });
+        
+        // Add Bootstrap form classes
+        $('.form-control').addClass('form-control');
+        $('select').addClass('form-select');
+        
+        // Initialize select2 for better dropdown experience
+        $('#{{ form.assigned_lawyer.id_for_label }}').select2({
+            placeholder: "Select lawyer(s)",
+            allowClear: true,
+            multiple: true
+        });
+        
+        $('#{{ form.category.id_for_label }}').select2({
+            placeholder: "Select legal category",
+            allowClear: true
+        });
+        
+        $('#{{ form.tags.id_for_label }}').select2({
+            tags: true,
+            tokenSeparators: [',', ' '],
+            placeholder: "Enter tags"
+        });
+        
+        $('#{{ form.jurisdiction.id_for_label }}').select2({
+            placeholder: "Select jurisdiction",
+            allowClear: true
+        });
+        
+        // File input enhancements
+        $('.custom-file-input').on('change', function() {
+            var fileNames = [];
+            for (var i = 0; i < $(this)[0].files.length; i++) {
+                fileNames.push($(this)[0].files[i].name);
+            }
+            $(this).next('.custom-file-label').html(fileNames.join(', '));
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

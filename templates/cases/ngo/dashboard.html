@@ -1,0 +1,97 @@
+<div style="padding: 40px;">
+    {% if cases %}
+        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+            {% for case in cases %}
+                <div style="
+                    flex: 1 1 calc(33% - 20px);
+                    background: rgba(255, 255, 255, 0.9);
+                    border-radius: 15px;
+                    padding: 20px;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    position: relative;
+                " 
+                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 16px 30px rgba(0,0,0,0.2)'"
+                onmouseout="this.style.transform='none'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.1)'"
+                >
+
+                    <!-- Urgent Badge -->
+                    {% if case.urgency == 'high' %}
+                        <span style="
+                            position: absolute;
+                            top: 15px;
+                            right: 15px;
+                            background: #dc3545;
+                            color: white;
+                            padding: 5px 10px;
+                            border-radius: 50px;
+                            font-size: 0.8rem;
+                            font-weight: bold;
+                        ">🚨 Urgent</span>
+                    {% endif %}
+
+                    <!-- Title -->
+                    <h5 style="margin-bottom: 10px; color: #0d6efd;">
+                        <a href="{% url 'cases:case_detail' pk=case.pk %}" style="text-decoration: none; color: inherit;">
+                            {{ case.title|truncatechars:40 }}
+                        </a>
+                    </h5>
+
+                    <!-- Category -->
+                    <p style="margin: 5px 0;"><strong>Category:</strong> {{ case.category.name }}</p>
+
+                    <!-- Status -->
+                    <p style="margin: 5px 0;">
+                        <strong>Status:</strong>
+                        {% if case.status == 'open' %}
+                            <span style="background: #ffc107; color: #212529; padding: 4px 8px; border-radius: 5px;">Open</span>
+                        {% elif case.status == 'assigned' %}
+                            <span style="background: #0dcaf0; color: #212529; padding: 4px 8px; border-radius: 5px;">Assigned</span>
+                        {% elif case.status == 'in_progress' %}
+                            <span style="background: #6c757d; color: white; padding: 4px 8px; border-radius: 5px;">In Progress</span>
+                        {% elif case.status == 'review' %}
+                            <span style="background: #212529; color: white; padding: 4px 8px; border-radius: 5px;">Under Review</span>
+                        {% elif case.status == 'completed' %}
+                            <span style="background: #198754; color: white; padding: 4px 8px; border-radius: 5px;">Completed</span>
+                        {% endif %}
+                    </p>
+
+                    <!-- Created -->
+                    <p style="margin: 5px 0; color: #6c757d;"><i class="fa fa-calendar-alt"></i> {{ case.created_at|date:"M d, Y" }}</p>
+
+                    <!-- Lawyer -->
+                    <p style="margin: 5px 0;">
+                        <strong>Lawyer:</strong>
+                        {% if case.assigned_lawyer %}
+                            {{ case.assigned_lawyer.user.get_full_name|default:case.assigned_lawyer.user.username }}
+                        {% else %}
+                            <span style="color: #6c757d; font-style: italic;">Not assigned</span>
+                        {% endif %}
+                    </p>
+
+                    <!-- Actions -->
+                    <div style="display: flex; justify-content: space-around; margin-top: 15px;">
+                        <a href="{% url 'cases:case_detail' pk=case.pk %}" title="View" style="padding: 5px 10px; border: 1px solid #0d6efd; border-radius: 5px; color: #0d6efd;">
+                            <i class="fa fa-eye"></i>
+                        </a>
+                        <a href="{% url 'cases:edit_case' pk=case.pk %}" title="Edit" style="padding: 5px 10px; border: 1px solid #6c757d; border-radius: 5px; color: #6c757d;">
+                            <i class="fa fa-edit"></i>
+                        </a>
+                        {% if case.status == 'open' %}
+                            <a href="{% url 'cases:invite_lawyers' case_pk=case.pk %}" title="Invite" style="padding: 5px 10px; border: 1px solid #198754; border-radius: 5px; color: #198754;">
+                                <i class="fa fa-user-plus"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- No Cases -->
+        <div style="text-align: center; padding: 100px 20px; color: #6c757d;">
+            <i class="fa fa-folder-open" style="font-size: 60px; opacity: 0.3;"></i>
+            <h4 style="margin-top: 20px;">No cases found</h4>
+            <p>You’re all caught up, boss 🙌</p>
+        </div>
+    {% endif %}
+</div>

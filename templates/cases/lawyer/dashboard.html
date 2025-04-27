@@ -1,0 +1,186 @@
+<!-- templates/cases/lawyer/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block title %}Lawyer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Lawyer Dashboard</h1>
+    
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">In Progress</h5>
+                    <p class="card-text display-4">{{ cases_in_progress }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Under Review</h5>
+                    <p class="card-text display-4">{{ cases_under_review }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Completed</h5>
+                    <p class="card-text display-4">{{ cases_completed }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Rating</h5>
+                    <p class="card-text">
+                        <span class="display-4">{{ average_rating|floatformat:1 }}</span>
+                        <span class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= average_rating|add:0.5|floatformat:0 %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Earnings -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Earnings</h5>
+                    <p class="card-text display-4">${{ total_earnings|default:"0" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="btn-group">
+                        <a href="{% url 'cases:browse_cases' %}" class="btn btn-primary">Browse Cases</a>
+                        <a href="{% url 'cases:lawyer_ratings' %}" class="btn btn-info">View Ratings</a>
+                        <a href="{% url 'cases:lawyer_success_stories' %}" class="btn btn-success">Success Stories</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Cases -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4>Active Cases</h4>
+        </div>
+        <div class="card-body">
+            {% if assigned_cases %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Case Title</th>
+                                <th>NGO</th>
+                                <th>Status</th>
+                                <th>Bounty</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for case in assigned_cases %}
+                                <tr>
+                                    <td><a href="{% url 'cases:case_detail_lawyer' pk=case.pk %}">{{ case.title }}</a></td>
+                                    <td>{{ case.ngo.get_full_name }}</td>
+                                    <td>
+                                        {% if case.status == 'assigned' %}
+                                            <span class="badge badge-primary">Assigned</span>
+                                        {% elif case.status == 'in_progress' %}
+                                            <span class="badge badge-info">In Progress</span>
+                                        {% elif case.status == 'review' %}
+                                            <span class="badge badge-warning">Under Review</span>
+                                        {% elif case.status == 'completed' %}
+                                            <span class="badge badge-success">Completed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>${{ case.bounty_amount }}</td>
+                                    <td>{{ case.deadline|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'cases:case_detail_lawyer' pk=case.pk %}" class="btn btn-outline-primary">View</a>
+                                            {% if case.status == 'assigned' or case.status == 'in_progress' %}
+                                                <a href="{% url 'cases:submit_progress' case_pk=case.pk %}" class="btn btn-outline-info">Update</a>
+                                                <a href="{% url 'cases:submit_case_completion' case_pk=case.pk %}" class="btn btn-outline-success">Complete</a>
+                                            {% endif %}
+                                            {% if case.status == 'completed' %}
+                                                <a href="{% url 'cases:add_success_story' case_pk=case.pk %}" class="btn btn-outline-warning">Add Story</a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">You don't have any active cases. <a href="{% url 'cases:browse_cases' %}">Browse available cases</a> to get started.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pending Applications -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h4>Pending Applications</h4>
+        </div>
+        <div class="card-body">
+            {% if pending_applications %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Case Title</th>
+                                <th>NGO</th>
+                                <th>Applied On</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in pending_applications %}
+                                <tr>
+                                    <td><a href="{% url 'cases:case_detail_lawyer' pk=application.case.pk %}">{{ application.case.title }}</a></td>
+                                    <td>{{ application.case.ngo.get_full_name }}</td>
+                                    <td>{{ application.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if application.status == 'pending' %}
+                                            <span class="badge badge-secondary">Pending</span>
+                                        {% elif application.status == 'shortlisted' %}
+                                            <span class="badge badge-info">Shortlisted</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'cases:case_detail_lawyer' pk=application.case.pk %}" class="btn btn-sm btn-outline-primary">View Case</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">You don't have any pending applications.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

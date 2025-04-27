@@ -1,0 +1,115 @@
+
+{% extends 'cases/ngo/base_ngo.html' %}
+{% block page_title %}Case History - {{ case.title }}{% endblock %}
+{% block ngo_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Case History: {{ case.title }}</h6>
+        <div>
+            <a href="{% url 'cases:case_detail' pk=case.pk %}" class="btn btn-sm btn-info">
+                <i class="fas fa-arrow-left"></i> Back to Case
+            </a>
+            <a href="{% url 'cases:edit_case' pk=case.pk %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-edit"></i> Edit Case
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="timeline">
+            {% if activities %}
+                {% for activity in activities %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker">
+                            <i class="fas {{ activity.icon }}"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <h4 class="timeline-title">
+                                {{ activity.date|date:"M d, Y h:i A" }}
+                                {% if activity.author %}
+                                    <small>by {{ activity.author }}</small>
+                                {% endif %}
+                            </h4>
+                            <p>{{ activity.description }}</p>
+                            
+                            {% if activity.type == 'document' %}
+                                <a href="{{ activity.document.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-eye"></i> View Document
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    No activity has been recorded for this case yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Basic timeline styling */
+    .timeline {
+        position: relative;
+        margin: 0 0 30px 0;
+        padding: 0;
+        list-style: none;
+    }
+    
+    .timeline:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: #e3e6f0;
+        left: 31px;
+        margin-left: -1.5px;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 15px;
+        display: flex;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: 30px;
+        width: 30px;
+        height: 30px;
+        background: #4e73df;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 30px;
+        color: white;
+        font-size: 0.8rem;
+        transform: translateX(-50%);
+        z-index: 1;
+    }
+    
+    .timeline-content {
+        margin-left: 50px;
+        padding: 10px 15px;
+        background: #f8f9fc;
+        border-radius: 4px;
+        border-left: 3px solid #4e73df;
+        width: 100%;
+    }
+    
+    .timeline-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #4e73df;
+    }
+    
+    .timeline-title small {
+        font-weight: 400;
+        color: #858796;
+        margin-left: 5px;
+    }
+</style>
+{% endblock %}
+```

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Donation Cases</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #f9fafb;
+            padding: 0;
+            margin: 0;
+        }
+
+        header {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .filter-form {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 0.875rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            appearance: none;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 12l-6-6h12l-6 6z'/%3E%3C/svg%3E") no-repeat right 0.875rem center;
+            background-size: 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.875rem 1.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            align-self: flex-end;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        .cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .case-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .case-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .case-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .case-body {
+            padding: 1.5rem;
+        }
+
+        .case-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .case-description {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: var(--light-gray);
+            border-radius: 9999px;
+            height: 0.75rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 9999px;
+            width: 65%; /* Dynamic based on amount raised */
+            transition: width 0.3s ease-in-out;
+        }
+
+        .case-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .donate-btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .donate-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .amount-raised {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .urgency {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .urgency-low {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .urgency-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .urgency-high {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .urgency-critical {
+            background: #ef4444;
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+            gap: 0.5rem;
+        }
+
+        .pagination a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 8px;
+            background: white;
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.2s;
+        }
+
+        .pagination a:hover {
+            background: var(--light-gray);
+        }
+
+        .pagination .active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .pagination-info {
+            display: flex;
+            align-items: center;
+            margin: 0 1rem;
+            color: var(--gray);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .empty-state p {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+            font-size: 1.125rem;
+        }
+
+        @media (max-width: 768px) {
+            .filter-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .cases {
+                grid-template-columns: 1fr;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Donation Hub</h1>
+        </div>
+    </header>
+    <div class="container">
+        <h1>Browse Cases</h1>
+        <form method="get" class="filter-form">
+            <div class="form-group">
+                <label for="category">Category:</label>
+                <select id="category" name="category">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="urgency">Urgency Level:</label>
+                <select id="urgency" name="urgency">
+                    <option value="">All Levels</option>
+                    <option value="low" {% if urgency_filter == "low" %}selected{% endif %}>Low</option>
+                    <option value="medium" {% if urgency_filter == "medium" %}selected{% endif %}>Medium</option>
+                    <option value="high" {% if urgency_filter == "high" %}selected{% endif %}>High</option>
+                    <option value="critical" {% if urgency_filter == "critical" %}selected{% endif %}>Critical</option>
+                </select>
+            </div>
+            <button type="submit">Apply Filters</button>
+        </form>
+        {% if page_obj %}
+        <div class="cases">
+            {% for case in page_obj %}
+            <div class="case-card">
+                <div class="case-header">
+                    <span class="urgency urgency-{{ case.urgency|default:'medium' }}">{{ case.urgency|default:'Medium' }}</span>
+                    <h2 class="case-title">{{ case.title }}</h2>
+                </div>
+                <div class="case-body">
+                    <p class="case-description">{{ case.description }}</p>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: {{ case.progress_percentage }}%;"></div>
+                    </div>
+                </div>
+                <div class="case-footer">
+                    <div class="amount-raised">${{ case.total_donations }}</div>
+                    <a href="{% url 'donations:donate_to_case' case.pk %}" class="donate-btn">Donate Now</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if urgency_filter %}&urgency={{ urgency_filter }}{% endif %}">
+                &laquo;
+            </a>
+            {% endif %}
+            <div class="pagination-info">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </div>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if urgency_filter %}&urgency={{ urgency_filter }}{% endif %}">
+                &raquo;
+            </a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No cases are available with the selected filters.</p>
+            <a href="?" class="donate-btn">Clear Filters</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

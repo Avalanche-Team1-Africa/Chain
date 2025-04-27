@@ -1,0 +1,85 @@
+<!-- donations/templates/donations/my_donations.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Donations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background-color: #f4f4f4;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        li strong {
+            font-size: 18px;
+            color: #007bff;
+        }
+        li small {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        li span.anonymous {
+            font-size: 14px;
+            color: #dc3545;
+            margin-left: 10px;
+        }
+        p.no-donations {
+            text-align: center;
+            color: #6c757d;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My Donations</h1>
+
+        {% if donations %}
+        <ul>
+            {% for donation in donations %}
+            <li>
+                <div>
+                    <strong>{{ donation.case.title }}</strong>
+                    <span class="anonymous">{% if donation.is_anonymous %}(Anonymous){% endif %}</span>
+                </div>
+                <div>
+                    <span>${{ donation.amount }}</span>
+                    <small>{{ donation.created_at|date:"M d, Y" }}</small>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="no-donations">You have not made any donations yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

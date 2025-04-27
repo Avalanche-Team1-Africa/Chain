@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Invite Lawyer to Case{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'cases:ngo_dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cases:case_detail' pk=case.pk %}">{{ case.title|truncatechars:30 }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Invite Lawyer</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Invite Lawyer to Case</h3>
+        </div>
+        <div class="card-body">
+            <div class="mb-4">
+                <h5>Case Details</h5>
+                <div class="card bg-light mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ case.title }}</h6>
+                        <p class="card-text">
+                            <span class="badge {% if case.urgency == 'high' %}bg-danger{% elif case.urgency == 'medium' %}bg-warning{% else %}bg-info{% endif %}">
+                                {{ case.get_urgency_display }}
+                            </span>
+                            <span class="badge bg-secondary">{{ case.category.name }}</span>
+                        </p>
+                        <p class="card-text">{{ case.description|truncatewords:50 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h5>Select a Lawyer to Invite</h5>
+                <p class="text-muted">
+                    Inviting a lawyer will directly assign them to this case without requiring them to apply. 
+                    The lawyer will be notified via email about this invitation.
+                </p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {{ form|crispy }}
+                    
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="{% url 'cases:case_detail' pk=case.pk %}" class="btn btn-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Invite Lawyer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // If you have a lawyer selection field with ID "id_lawyer" and want to enhance it
+    const lawyerSelect = document.getElementById('id_lawyer');
+    
+    if (lawyerSelect) {
+        // You could add event listeners or other enhancements here
+        lawyerSelect.addEventListener('change', function() {
+            // Optional: Add logic if you want something to happen when a lawyer is selected
+            // For example, you could fetch and display the lawyer's profile details
+        });
+    }
+});
+</script>
+{% endblock %}

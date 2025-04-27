@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Update Case Progress - HakiChain{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-4">
+        <a href="{% url 'cases:case_detail_lawyer' pk=case.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Case Details
+        </a>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-white">
+            <h2 class="mb-0">Update Progress: {{ case.title }}</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <h4>Update Case Progress</h4>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Update Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Progress Details</label>
+                        <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+                        <div class="form-text">Provide details about the progress made, any challenges encountered, and next steps.</div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h4>Update Milestones</h4>
+                    {% if case.milestones.all %}
+                        <div class="card">
+                            <div class="card-body">
+                                {% for milestone in case.milestones.all %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" value="{{ milestone.id }}" 
+                                           id="milestone-{{ milestone.id }}" name="completed_milestones" 
+                                           {% if milestone.is_completed %}checked disabled{% endif %}>
+                                    <label class="form-check-label" for="milestone-{{ milestone.id }}">
+                                        {{ milestone.description }}
+                                        {% if milestone.is_completed %}
+                                            <span class="badge bg-success ms-2">Completed</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">No milestones have been defined for this case.</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <h4>Upload Supporting Documents (Optional)</h4>
+                    <div class="mb-3">
+                        <label for="document_title" class="form-label">Document Title</label>
+                        <input type="text" class="form-control" id="document_title" name="document_title">
+                    </div>
+                    <div class="mb-3">
+                        <label for="document_type" class="form-label">Document Type</label>
+                        <select class="form-select" id="document_type" name="document_type">
+                            <option value="">Select document type</option>
+                            <option value="COURT">Court Filing</option>
+                            <option value="EVIDENCE">Evidence</option>
+                            <option value="LETTER">Legal Letter</option>
+                            <option value="REPORT">Report</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="document_file" class="form-label">Document File</label>
+                        <input type="file" class="form-control" id="document_file" name="document_file">
+                        <div class="form-text">Accepted formats: PDF, DOC, DOCX, JPG, PNG (Max size: 10MB)</div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save me-2"></i> Submit Progress Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

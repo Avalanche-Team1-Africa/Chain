@@ -38,9 +38,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt',
     'accounts',
      'core',
      'cases',
+    'donations',
+    'chat',
+    'channels',
+    'crispy_forms',
+    'crispy_bootstrap5',
     
 ]
 
@@ -118,6 +125,37 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+# Channels settings
+ASGI_APPLICATION = 'HakiChain.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+          'hosts': [('127.0.0.1', 6380)], 
+        },
+    },
+}
+
+# REST Framework and JWT settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+
+
+
+
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -133,8 +171,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
 LOGIN_REDIRECT_URL = 'accounts:dashboard'
-LOGIN_REDIRECT_URL = 'accounts:dashboard'
-
 
 AFRICASTALKING_USERNAME = 'Kwepo'
-AFRICASTALKING_API_KEY = 'atsk_2063bbd7d9fbbc74e44a904b5d3e12d0ba46c9acc5a396e179fcdd582828126fd2b97ef1'
+AFRICASTALKING_API_KEY = 'atsk_7f5194c33e9526861e59210aec155ed76750877f07197d9520c7276fd73671bff71b66eb'
+
+
+
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+
+# For Gmail (example)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'hakichain@gmai.com'
+EMAIL_HOST_PASSWORD = 'HakiChain2025'  
+

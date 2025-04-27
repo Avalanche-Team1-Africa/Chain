@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Case Header -->
+    <div class="mb-5">
+        <h2 class="fw-bold text-primary">
+            <i class="fa fa-briefcase me-2"></i>{{ case.title }}
+        </h2>
+        <p class="text-muted">{{ case.description }}</p>
+        <div class="d-flex flex-wrap gap-4 mt-3">
+            <p class="mb-0">
+                <i class="fa fa-flag me-1 text-secondary"></i>
+                <strong>Status:</strong> {{ case.status|capfirst }}
+            </p>
+            <p class="mb-0">
+                <i class="fa fa-dollar-sign me-1 text-success"></i>
+                <strong>Total Donations:</strong> ${{ case.total_donations }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Chat Link -->
+    <div class="mb-4">
+        <a href="{% url 'chat:case_chat' case.pk %}" class="btn btn-primary shadow-sm">
+            <i class="fa fa-comments me-2"></i> Open Chat
+        </a>
+    </div>
+
+    <!-- Milestones -->
+    {% if case.milestones.all %}
+    <div class="card mb-5 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fa fa-bullseye text-info me-2"></i>Milestones
+            </h5>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for milestone in case.milestones.all %}
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="fw-semibold mb-1">{{ milestone.title }}</h6>
+                    <small class="text-muted">Target: {{ milestone.target_date|date:"M d, Y" }}</small>
+                    {% if milestone.description %}
+                        <p class="mb-1">{{ milestone.description }}</p>
+                    {% endif %}
+                </div>
+                <span class="badge 
+                    {% if milestone.status == 'completed' %}bg-success
+                    {% elif milestone.status == 'in_progress' %}bg-warning text-dark
+                    {% else %}bg-secondary
+                    {% endif %}">
+                    {{ milestone.get_status_display }}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Documents -->
+    {% if documents %}
+    <div class="mb-5">
+        <h5 class="fw-semibold mb-3">
+            <i class="fa fa-file-alt text-primary me-2"></i>Documents
+        </h5>
+        <ul class="list-unstyled">
+            {% for document in documents %}
+            <li class="mb-2">
+                <i class="fa fa-file me-1 text-secondary"></i>
+                {{ document.title }} — 
+                <a href="{{ document.file.url }}" class="text-decoration-none text-primary fw-semibold">
+                    Download <i class="fa fa-download ms-1"></i>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Updates -->
+    {% if updates %}
+    <div class="mb-5">
+        <h5 class="fw-semibold mb-3">
+            <i class="fa fa-sync-alt text-warning me-2"></i>Updates
+        </h5>
+        <ul class="list-group">
+            {% for update in updates %}
+            <li class="list-group-item">
+                <p class="mb-1">{{ update.content }}</p>
+                <small class="text-muted">
+                    <i class="fa fa-user-circle me-1"></i>{{ update.created_by.email }} —
+                    <i class="fa fa-clock me-1"></i>{{ update.created_at|date:"M d, Y H:i" }}
+                </small>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Applications -->
+    {% if applications %}
+    <div class="mb-4">
+        <h5 class="fw-semibold mb-3">
+            <i class="fa fa-user-tie text-success me-2"></i>Lawyer Applications
+        </h5>
+        <ul class="list-group">
+            {% for application in applications %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="fa fa-user me-1"></i>{{ application.lawyer.full_name }}
+                </span>
+                <span class="badge bg-info text-dark">{{ application.status|capfirst }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

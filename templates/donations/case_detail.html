@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ case.title }} - Case Details</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #eef2ff;
+            --primary-dark: #4338ca;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --border: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f9fafb;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s;
+        }
+        
+        .back-link:hover {
+            color: var(--primary-dark);
+            transform: translateX(-4px);
+        }
+        
+        .back-icon {
+            margin-right: 0.5rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        
+        .case-details {
+            background-color: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 3rem;
+        }
+        
+        .case-image {
+            height: 200px;
+            background-color: #cbd5e1;
+            background-image: linear-gradient(135deg, #a5b4fc 0%, #818cf8 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .case-image::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0));
+        }
+        
+        .case-content {
+            padding: 2rem;
+        }
+        
+        .case-description {
+            color: var(--dark);
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+        
+        .case-stats {
+            background-color: var(--primary-light);
+            padding: 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .donation-amount {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .donation-label {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-top: 0.25rem;
+        }
+        
+        .progress-container {
+            flex-grow: 1;
+            margin: 0 2rem;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 999px;
+            width: 65%; /* Would be dynamic based on percentage */
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+        
+        .donate-btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .donate-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+        
+        .section {
+            margin-bottom: 3rem;
+        }
+        
+        h2 {
+            color: var(--dark);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        
+        .comment-form {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        textarea, 
+        input[type="text"],
+        input[type="email"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        textarea:focus, 
+        input[type="text"]:focus,
+        input[type="email"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .help-text {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+        
+        .comment-list {
+            list-style-type: none;
+        }
+        
+        .comment-item {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+        
+        .comment-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 1rem;
+            margin-right: 0.75rem;
+        }
+        
+        .commenter-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .comment-date {
+            margin-left: auto;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+        
+        .comment-text {
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .empty-comments {
+            background-color: var(--light-gray);
+            padding: 2rem;
+            text-align: center;
+            border-radius: 12px;
+            color: var(--gray);
+        }
+        
+        .floating-back-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 100;
+            text-decoration: none;
+        }
+        
+        .floating-back-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .case-stats {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+            
+            .progress-container {
+                margin: 1rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'donations:browse_cases' %}" class="back-link">
+            <svg class="back-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.8334 10H4.16675" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10.0001 15.8334L4.16675 10.0001L10.0001 4.16675" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back to All Cases
+        </a>
+        
+        <div class="header">
+            <h1>{{ case.title }}</h1>
+        </div>
+        
+        <div class="case-details">
+            <div class="case-image">
+                <!-- This would be replaced with an actual image in a real implementation -->
+                <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" fill="white"/>
+                    <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" stroke-width="2"/>
+                    <path d="M12 8V12L14 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="case-content">
+                <p class="case-description">{{ case.description }}</p>
+                
+                <div class="case-stats">
+                    <div class="donation-amount">
+                        ${{ total_donations }}
+                        <span class="donation-label">Total Donations</span>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span>65% of ${{ case.goal|default:"10,000" }}</span>
+                            <span>{{ case.days_left|default:"23" }} days left</span>
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'donations:donate_to_case' case.pk %}" class="donate-btn">Donate Now</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Leave a Comment</h2>
+            <form method="post" class="comment-form">
+                {% csrf_token %}
+                
+                {% if not user.is_authenticated %}
+                <div class="form-group">
+                    <label for="id_name">Name (optional):</label>
+                    {{ form.name }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_email">Email (optional):</label>
+                    {{ form.email }}
+                    <p class="help-text">We won't display your email publicly</p>
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="id_text">Your Comment:</label>
+                    {{ form.text }}
+                </div>
+                
+                <button type="submit" class="donate-btn">Post Comment</button>
+            </form>
+        </div>
+        
+        <div class="section">
+            <h2>Comments ({{ comments|length }})</h2>
+            
+            {% if comments %}
+            <ul class="comment-list">
+                {% for comment in comments %}
+                <li class="comment-item">
+                    <div class="comment-header">
+                        <div class="avatar">
+                            {% if comment.donor.username %}
+                            {{ comment.donor.username|slice:":1" }}
+                            {% else %}
+                            A
+                            {% endif %}
+                        </div>
+                        <span class="commenter-name">{{ comment.donor.username|default:"Anonymous" }}</span>
+                        <span class="comment-date">{{ comment.created_at|date:"M j, Y" }}</span>
+                    </div>
+                    <p class="comment-text">{{ comment.text }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-comments">
+                <p>No comments yet. Be the first to share your thoughts!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Floating back button for mobile users -->
+    <a href="{% url 'donations:browse_cases' %}" class="floating-back-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</body>
+</html>

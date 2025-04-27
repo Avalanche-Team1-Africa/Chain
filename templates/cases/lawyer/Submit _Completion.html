@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Case Completion - HakiChain{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-4">
+        <a href="{% url 'cases:case_detail_lawyer' pk=case.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Case Details
+        </a>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-white">
+            <h2 class="mb-0">Submit Case Completion: {{ case.title }}</h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i> Submitting case completion will mark this case as pending review. The NGO will then review your submission and mark the case as completed.
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <h4>Completion Summary</h4>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Summary Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Completion Details</label>
+                        <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+                        <div class="form-text">Provide a comprehensive summary of the case resolution, key accomplishments, and outcomes.</div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h4>Milestone Status</h4>
+                    {% if case.milestones.all %}
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="text-muted mb-3">All milestones must be completed before a case can be marked as completed.</p>
+                                {% for milestone in case.milestones.all %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" value="{{ milestone.id }}" 
+                                           id="milestone-{{ milestone.id }}" name="completed_milestones" 
+                                           {% if milestone.is_completed %}checked disabled{% endif %} required>
+                                    <label class="form-check-label" for="milestone-{{ milestone.id }}">
+                                        {{ milestone.description }}
+                                        {% if milestone.is_completed %}
+                                            <span class="badge bg-success ms-2">Completed</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">No milestones have been defined for this case. Please contact the NGO to set milestones before completing the case.</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <h4>Final Case Documentation</h4>
+                    <div class="mb-3">
+                        <label for="document_title" class="form-label">Document Title</label>
+                        <input type="text" class="form-control" id="document_title" name="document_title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="document_type" class="form-label">Document Type</label>
+                        <select class="form-select" id="document_type" name="document_type" required>
+                            <option value="">Select document type</option>
+                            <option value="JUDGMENT">Court Judgment</option>
+                            <option value="SETTLEMENT">Settlement Agreement</option>
+                            <option value="SUMMARY">Case Summary</option>
+                            <option value="REPORT">Final Report</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="document_file" class="form-label">Document File</label>
+                        <input type="file" class="form-control" id="document_file" name="document_file" required>
+                        <div class="form-text">Accepted formats: PDF, DOC, DOCX (Max size: 10MB)</div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-flag-checkered me-2"></i> Submit Case Completion
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

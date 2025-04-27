@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Chat - {{ case.title }}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #2a6fc9;
+            --secondary-color: #f8f9fa;
+            --accent-color: #0abb87;
+            --danger-color: #f64e60;
+            --text-color: #3f4254;
+            --light-text: #7e8299;
+            --border-color: #e4e6ef;
+            --user-message: #d7f5ff;
+            --other-message: #f1f3f8;
+        }
+
+        body {
+            background-color: #f3f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            height: 100vh;
+            margin: 0;
+        }
+
+        .chat-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .chat-header {
+            background-color: #ffffff;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .chat-header h1 {
+            margin-bottom: 0;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .chat-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            margin: 0.75rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.03);
+        }
+
+        #messages-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            max-width: 75%;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 1rem;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .message.user {
+            background-color: var(--user-message);
+            align-self: flex-end;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .message.other {
+            background-color: var(--other-message);
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .message p {
+            margin-bottom: 0.5rem;
+        }
+
+        .message small {
+            font-size: 0.75rem;
+            color: var(--light-text);
+            position: absolute;
+            bottom: 0.5rem;
+            right: 1rem;
+        }
+
+        .message.user small {
+            right: 1rem;
+        }
+
+        .message.other small {
+            right: 1rem;
+        }
+
+        .video-section {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 0.75rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .video-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            height: 220px;
+        }
+
+        .video-box {
+            width: 48%;
+            height: 100%;
+            border-radius: 0.75rem;
+            background-color: #e9ecef;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .video-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-video {
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-start {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .btn-start:hover {
+            background-color: #09a579;
+            border-color: #09a579;
+        }
+
+        .btn-end {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .btn-end:hover {
+            background-color: #ee2d41;
+            border-color: #ee2d41;
+        }
+
+        .scheduled-calls {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+        }
+
+        .scheduled-calls h5 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .scheduled-call {
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            background-color: #fcfcfc;
+            transition: transform 0.2s;
+        }
+
+        .scheduled-call:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .schedule-btn {
+            width: 100%;
+            border-radius: 2rem;
+            padding: 0.75rem;
+            font-weight: 600;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transition: all 0.3s;
+        }
+
+        .schedule-btn:hover {
+            background-color: #1d5aa9;
+            border-color: #1d5aa9;
+        }
+
+        .message-input {
+            display: flex;
+            gap: 1rem;
+            padding: 1.25rem;
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
+
+        .message-input input {
+            flex: 1;
+            padding: 0.875rem 1.25rem;
+            border: 1px solid var(--border-color);
+            border-radius: 2rem;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .message-input input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(42, 111, 201, 0.15);
+        }
+
+        .message-input button {
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 2rem;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .message-input button:hover {
+            background-color: #1d5aa9;
+        }
+
+        @media (max-width: 767.98px) {
+            .message {
+                max-width: 85%;
+            }
+            
+            .video-container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .video-box {
+                width: 100%;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0 chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <h1 class="h4">
+                <i class="fas fa-comments me-2"></i> Chat for Case: {{ case.title }}
+            </h1>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row mx-0 flex-grow-1">
+            <!-- Chat Section -->
+            <div class="col-md-6 p-0">
+                <div class="chat-body">
+                    <div id="messages-container">
+                        <!-- Messages will be dynamically rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video and Schedule Section -->
+            <div class="col-md-6 p-0">
+                <div class="video-section">
+                    <div class="video-container">
+                        <video id="local-video" class="video-box" autoplay muted></video>
+                        <video id="remote-video" class="video-box" autoplay></video>
+                    </div>
+                    <div class="video-controls">
+                        <button id="start-call-btn" class="btn btn-success btn-video btn-start">
+                            <i class="fas fa-video me-2"></i> Start Video Call
+                        </button>
+                        <button id="end-call-btn" class="btn btn-danger btn-video btn-end d-none">
+                            <i class="fas fa-phone-slash me-2"></i> End Video Call
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="scheduled-calls mt-3">
+                    <h5>
+                        <i class="fas fa-calendar-alt me-2"></i> Scheduled Calls
+                    </h5>
+                    <div id="scheduled-calls-container">
+                        <!-- Scheduled calls will be dynamically rendered here -->
+                        <div class="scheduled-call">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">Call with Support Team</h6>
+                                    <p class="mb-1 text-muted"><i class="far fa-clock me-1"></i> Apr 25, 2025 - 10:00 AM</p>
+                                </div>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#" class="btn btn-primary schedule-btn mt-3">
+                        <i class="fas fa-plus me-2"></i> Schedule New Call
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="message-input">
+            <input type="text" id="message-input" placeholder="Type your message..." />
+            <button id="send-message-btn">
+                <i class="fas fa-paper-plane me-2"></i> Send
+            </button>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- React Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.9/babel.min.js"></script>
+
+    <!-- React App -->
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function ChatApp({ caseId, accessToken, userEmail, scheduledCalls, isNgo }) {
+            const [messages, setMessages] = useState([]);
+            const [message, setMessage] = useState('');
+            const [ws, setWs] = useState(null);
+            const [localStream, setLocalStream] = useState(null);
+            const [remoteStream, setRemoteStream] = useState(null);
+            const [callActive, setCallActive] = useState(false);
+
+            const localVideoRef = useRef(null);
+            const remoteVideoRef = useRef(null);
+            const peerConnectionRef = useRef(null);
+            const videoWsRef = useRef(null);
+            const messagesEndRef = useRef(null);
+
+            // Initialize Chat WebSocket
+            useEffect(() => {
+                const websocket = new WebSocket(
+                    `ws://${window.location.host}/ws/chat/${caseId}/?token=${accessToken}`
+                );
+                setWs(websocket);
+                websocket.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    setMessages((prev) => [
+                        ...prev,
+                        {
+                            sender: data.sender,
+                            message: data.message,
+                            timestamp: data.timestamp,
+                        },
+                    ]);
+                };
+                websocket.onclose = () => console.log('Chat WebSocket closed');
+                fetchMessages();
+                return () => websocket.close();
+            }, [caseId, accessToken]);
+
+            // Fetch initial messages
+            const fetchMessages = async () => {
+                try {
+                    const response = await fetch(`/chat/case/${caseId}/`, {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                        },
+                    });
+                    const data = await response.json();
+                    setMessages(data.messages || []);
+                } catch (error) {
+                    console.error("Error fetching messages:", error);
+                }
+            };
+
+            // Auto scroll to bottom when new messages arrive
+            useEffect(() => {
+                const container = document.getElementById('messages-container');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, [messages]);
+
+            // Send chat message
+            const sendMessage = () => {
+                if (message.trim() && ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ message }));
+                    setMessage('');
+                }
+            };
+
+            // Render messages
+            useEffect(() => {
+                const container = document.getElementById('messages-container');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                messages.forEach((msg) => {
+                    const div = document.createElement('div');
+                    const isUser = msg.sender === userEmail;
+                    div.className = `message ${isUser ? 'user' : 'other'}`;
+                    div.innerHTML = `
+                        <p><strong>${isUser ? 'You' : msg.sender}</strong></p>
+                        <p>${msg.message}</p>
+                        <small>${new Date(msg.timestamp).toLocaleString()}</small>
+                    `;
+                    container.appendChild(div);
+                });
+                container.scrollTop = container.scrollHeight;
+            }, [messages, userEmail]);
+
+            // Initialize video elements after component mounts
+            useEffect(() => {
+                localVideoRef.current = document.getElementById('local-video');
+                remoteVideoRef.current = document.getElementById('remote-video');
+                
+                // Set up event listeners for video call buttons
+                document.getElementById('start-call-btn').addEventListener('click', startCall);
+                document.getElementById('end-call-btn').addEventListener('click', endCall);
+                
+                // Set up message input events
+                document.getElementById('message-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') sendMessage();
+                });
+                document.getElementById('send-message-btn').addEventListener('click', sendMessage);
+                
+                // Initialize Video WebSocket
+                const videoWebsocket = new WebSocket(
+                    `ws://${window.location.host}/ws/video/${caseId}/?token=${accessToken}`
+                );
+                videoWsRef.current = videoWebsocket;
+                videoWebsocket.onmessage = async (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'offer') await handleOffer(data);
+                    else if (data.type === 'answer') await handleAnswer(data);
+                    else if (data.type === 'ice-candidate') await handleIceCandidate(data);
+                };
+                videoWebsocket.onclose = () => console.log('Video WebSocket closed');
+                
+                return () => {
+                    videoWebsocket.close();
+                    if (localStream) {
+                        localStream.getTracks().forEach(track => track.stop());
+                    }
+                };
+            }, [caseId, accessToken]);
+
+            // Initialize WebRTC
+            const initWebRTC = async (stream) => {
+                const configuration = { 
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] 
+                };
+                
+                const peerConnection = new RTCPeerConnection(configuration);
+                peerConnectionRef.current = peerConnection;
+                
+                // Add local stream to peer connection
+                stream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, stream);
+                });
+                
+                // Set up event handlers for the peer connection
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        videoWsRef.current.send(JSON.stringify({
+                            type: 'ice-candidate',
+                            candidate: event.candidate
+                        }));
+                    }
+                };
+                
+                peerConnection.ontrack = (event) => {
+                    setRemoteStream(event.streams[0]);
+                    remoteVideoRef.current.srcObject = event.streams[0];
+                };
+                
+                // Create and send offer
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                
+                videoWsRef.current.send(JSON.stringify({
+                    type: 'offer',
+                    offer: peerConnection.localDescription
+                }));
+            };
+
+            // Handle incoming offer
+            const handleOffer = async (data) => {
+                if (!peerConnectionRef.current) {
+                    // Auto-accept incoming call
+                    await startCall();
+                }
+                
+                await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await peerConnectionRef.current.createAnswer();
+                await peerConnectionRef.current.setLocalDescription(answer);
+                
+                videoWsRef.current.send(JSON.stringify({
+                    type: 'answer',
+                    answer: peerConnectionRef.current.localDescription
+                }));
+            };
+
+            // Handle incoming answer
+            const handleAnswer = async (data) => {
+                await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+            };
+
+            // Handle ICE candidate
+            const handleIceCandidate = async (data) => {
+                if (peerConnectionRef.current) {
+                    await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+                }
+            };
+
+            // Start video call
+            const startCall = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: true,
+                    });
+                    setLocalStream(stream);
+                    localVideoRef.current.srcObject = stream;
+                    await initWebRTC(stream);
+                    setCallActive(true);
+                    document.getElementById('start-call-btn').classList.add('d-none');
+                    document.getElementById('end-call-btn').classList.remove('d-none');
+                } catch (error) {
+                    console.error('Error starting call:', error);
+                    alert('Could not access camera and microphone. Please check permissions.');
+                }
+            };
+
+            // End video call
+            const endCall = () => {
+                if (peerConnectionRef.current) peerConnectionRef.current.close();
+                if (localStream) {
+                    localStream.getTracks().forEach((track) => track.stop());
+                }
+                setLocalStream(null);
+                setRemoteStream(null);
+                setCallActive(false);
+                
+                if (localVideoRef.current) localVideoRef.current.srcObject = null;
+                if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+                
+                document.getElementById('start-call-btn').classList.remove('d-none');
+                document.getElementById('end-call-btn').classList.add('d-none');
+                
+                // Send call ended message to other party
+                videoWsRef.current.send(JSON.stringify({
+                    type: 'call-ended'
+                }));
+            };
+
+            // Render scheduled calls
+            useEffect(() => {
+                const container = document.getElementById('scheduled-calls-container');
+                if (!container || !scheduledCalls || !Array.isArray(scheduledCalls)) return;
+                
+                if (scheduledCalls.length === 0) {
+                    container.innerHTML = '<p class="text-muted text-center">No scheduled calls</p>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                scheduledCalls.forEach((call) => {
+                    const div = document.createElement('div');
+                    div.className = 'scheduled-call';
+                    div.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">${call.title}</h6>
+                                <p class="mb-1 text-muted">
+                                    <i class="far fa-clock me-1"></i> ${new Date(call.scheduled_time).toLocaleString()}
+                                </p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill" 
+                                    onclick="editScheduledCall(${call.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }, [scheduledCalls]);
+
+            return null; // React component doesn't need to render anything as we're manipulating the DOM directly
+        }
+
+        // Add this to window context to be accessible from inline event handlers
+        window.editScheduledCall = (callId) => {
+            alert(`Edit scheduled call with ID: ${callId}`);
+            // This would typically open a modal or redirect to an edit page
+        };
+
+        // Render React component
+        const root = ReactDOM.createRoot(document.getElementById('root') || document.createElement('div'));
+        root.render(
+            <ChatApp
+                caseId="{{ case.pk }}"
+                accessToken="{{ access_token }}"
+                userEmail="{{ user_email }}"
+                scheduledCalls={JSON.parse('{{ scheduled_calls|safe }}')}
+                isNgo={{ is_ngo|lower }}
+            />
+        );
+    </script>
+</body>
+</html>

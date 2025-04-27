@@ -1,0 +1,139 @@
+<!-- templates/cases/lawyer/apply_for_case.html -->
+{% extends 'base.html' %}
+
+{% block title %}Apply for Case: {{ case.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-3">
+        <a href="{% url 'cases:case_detail_lawyer' pk=case.pk %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Case
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2>Apply for Case: {{ case.title }}</h2>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Case Overview</h5>
+                        <div class="mb-3">
+                            <span class="badge badge-info">{{ case.category.name }}</span>
+                            {% if case.urgency == 'high' %}
+                                <span class="badge badge-danger">Urgent</span>
+                            {% elif case.urgency == 'medium' %}
+                                <span class="badge badge-warning">Medium Priority</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Regular</span>
+                            {% endif %}
+                            <span class="badge badge-success">${{ case.bounty_amount }} Bounty</span>
+                        </div>
+                        <p>{{ case.description }}</p>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>NGO:</strong> {{ case.ngo.ngo_profile.organization_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Location:</strong> {{ case.location }}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Posted:</strong> {{ case.created_at|date:"F j, Y" }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Deadline:</strong> {{ case.deadline|date:"F j, Y" }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Please complete the application form below to express your interest in this case.
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="cover_letter" class="form-label"><strong>Cover Letter</strong></label>
+                            <textarea name="cover_letter" id="cover_letter" class="form-control" rows="5" required placeholder="Explain why you're interested in this case and why you'd be a good fit..."></textarea>
+                            <small class="form-text text-muted">Briefly explain why you're interested in this case and how your experience qualifies you to handle it.</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="relevant_experience" class="form-label"><strong>Relevant Experience</strong></label>
+                            <textarea name="relevant_experience" id="relevant_experience" class="form-control" rows="4" required placeholder="Describe your experience with similar cases..."></textarea>
+                            <small class="form-text text-muted">Detail any previous work on similar cases or in related legal areas.</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="time_commitment" class="form-label"><strong>Estimated Time Commitment</strong></label>
+                            <div class="input-group">
+                                <input type="number" name="time_commitment" id="time_commitment" class="form-control" required min="1">
+                                <span class="input-group-text">hours per week</span>
+                            </div>
+                            <small class="form-text text-muted">Estimate how many hours per week you can dedicate to this case.</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="availability_start" class="form-label"><strong>Availability Start Date</strong></label>
+                            <input type="date" name="availability_start" id="availability_start" class="form-control" required>
+                            <small class="form-text text-muted">When can you start working on this case?</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="documents" class="form-label"><strong>Supporting Documents</strong> (optional)</label>
+                            <input type="file" name="documents" id="documents" class="form-control" multiple>
+                            <small class="form-text text-muted">Upload any relevant certificates, case studies, or reference letters (max 5MB each).</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label class="form-label"><strong>Languages</strong></label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="languages" value="english" id="english">
+                                <label class="form-check-label" for="english">English</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="languages" value="swahili" id="swahili">
+                                <label class="form-check-label" for="swahili">Swahili</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="languages" value="other" id="other_language">
+                                <label class="form-check-label" for="other_language">Other</label>
+                            </div>
+                            <div class="mt-2" id="other_language_div" style="display:none;">
+                                <input type="text" name="other_language_text" class="form-control" placeholder="Please specify other languages">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group form-check mb-4">
+                            <input type="checkbox" class="form-check-input" id="terms_agreement" name="terms_agreement" required>
+                            <label class="form-check-label" for="terms_agreement">I understand that by applying for this case, I am committing to providing pro bono legal services if selected.</label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit Application</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt"></i> Your application will be reviewed by the NGO that posted this case. You'll be notified if you're selected.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('other_language').addEventListener('change', function() {
+        document.getElementById('other_language_div').style.display = this.checked ? 'block' : 'none';
+    });
+</script>
+{% endblock content %}

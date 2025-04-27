@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donate to {{ case.title }}</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+            --success: #10b981;
+            --crypto-color: #f7931a;
+            --mpesa-color: #4caf50;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f9fafb;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .donation-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .donation-subtitle {
+            color: var(--gray);
+            font-size: 1.125rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .donation-form {
+            background-color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .payment-methods {
+            margin: 2rem 0;
+        }
+        
+        .payment-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .payment-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .payment-option {
+            display: none;
+        }
+        
+        .payment-option + label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 160px;
+            padding: 1.25rem 1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .payment-option:checked + label {
+            border-color: var(--primary);
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+        
+        .payment-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 0.75rem;
+            transition: transform 0.2s;
+        }
+        
+        .payment-option + label:hover .payment-icon {
+            transform: scale(1.1);
+        }
+        
+        .payment-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .payment-details {
+            margin-top: 1.5rem;
+            display: none;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background-color: var(--light-gray);
+        }
+        
+        .payment-details.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        .crypto-details,
+        .mpesa-details {
+            display: none;
+        }
+        
+        .crypto-details.active,
+        .mpesa-details.active {
+            display: block;
+        }
+        
+        .crypto-info {
+            background-color: rgba(247, 147, 26, 0.1);
+            border-left: 4px solid var(--crypto-color);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1rem;
+        }
+        
+        .mpesa-info {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--mpesa-color);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1rem;
+        }
+        
+        .wallet-address {
+            font-family: monospace;
+            padding: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 6px;
+            word-break: break-all;
+            margin-top: 0.5rem;
+        }
+        
+        .submit-container {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.875rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 200px;
+        }
+        
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+        
+        .help-text {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @media (max-width: 640px) {
+            .payment-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .payment-option + label {
+                width: 100%;
+                max-width: 300px;
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: 1rem;
+            }
+            
+            .payment-icon {
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="donation-header">
+            <h1>Donate to {{ case.title }}</h1>
+            <p class="donation-subtitle">Your generous contribution will make a real difference. Choose your preferred payment method below.</p>
+        </div>
+        
+        <form method="post" class="donation-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="id_amount">Donation Amount:</label>
+                {{ form.amount }}
+                <p class="help-text">Enter the amount you wish to donate</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_name">Your Name:</label>
+                {{ form.name }}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_email">Email Address:</label>
+                {{ form.email }}
+                <p class="help-text">We'll send you a receipt at this address</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_message">Message (Optional):</label>
+                {{ form.message }}
+            </div>
+            
+            <div class="payment-methods">
+                <h3 class="payment-header">Select Payment Method</h3>
+                
+                <div class="payment-options">
+                    <input type="radio" name="payment_method" id="mpesa" value="mpesa" class="payment-option" checked>
+                    <label for="mpesa">
+                        <svg class="payment-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+                            <rect width="48" height="48" rx="24" fill="#4CAF50"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M34 14H14C12.8954 14 12 14.8954 12 16V32C12 33.1046 12.8954 34 14 34H34C35.1046 34 36 33.1046 36 32V16C36 14.8954 35.1046 14 34 14ZM14 12C11.7909 12 10 13.7909 10 16V32C10 34.2091 11.7909 36 14 36H34C36.2091 36 38 34.2091 38 32V16C38 13.7909 36.2091 12 34 12H14Z" fill="white"/>
+                            <path d="M24 17C23.4477 17 23 17.4477 23 18V30C23 30.5523 23.4477 31 24 31C24.5523 31 25 30.5523 25 30V18C25 17.4477 24.5523 17 24 17Z" fill="white"/>
+                            <path d="M17 22C16.4477 22 16 22.4477 16 23V25C16 25.5523 16.4477 26 17 26C17.5523 26 18 25.5523 18 25V23C18 22.4477 17.5523 22 17 22Z" fill="white"/>
+                            <path d="M31 22C30.4477 22 30 22.4477 30 23V25C30 25.5523 30.4477 26 31 26C31.5523 26 32 25.5523 32 25V23C32 22.4477 31.5523 22 31 22Z" fill="white"/>
+                        </svg>
+                        <span class="payment-name">M-Pesa</span>
+                    </label>
+                    
+                    <input type="radio" name="payment_method" id="crypto" value="crypto" class="payment-option">
+                    <label for="crypto">
+                        <svg class="payment-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+                            <rect width="48" height="48" rx="24" fill="#F7931A"/>
+                            <path d="M33.9627 20.502C33.4411 17.3936 30.6389 16.3033 27.1856 16.8929L26.1424 13.2203L24.3184 13.6969L25.3392 17.2944C24.851 17.4148 24.3505 17.5466 23.8539 17.6783L22.8245 14.0466L21.0032 14.5231L22.0463 18.1957C21.6449 18.3009 21.251 18.4061 20.8645 18.5053L18.3582 19.1111L18.8611 21.0947C18.8611 21.0947 20.2154 20.7434 20.1894 20.7671C20.9959 20.5698 21.3184 21.0701 21.4168 21.4623L23.5215 29.7286C23.5696 29.9702 23.4918 30.3473 22.9195 30.4847C22.9455 30.4997 21.5913 30.7953 21.5913 30.7953L21.796 32.9825L24.188 32.4024C24.6354 32.2969 25.0753 32.1975 25.5065 32.0919L26.5648 35.8134L28.384 35.3368L27.3409 31.6667C27.8421 31.534 28.3281 31.4012 28.8011 31.2624L29.8387 34.9118L31.6628 34.4352L30.6045 30.7137C33.2271 29.8181 35.0791 28.0151 34.7091 25.0859C34.4085 22.7357 32.6837 21.6867 30.7194 21.2295C31.6251 20.9275 32.2928 20.2999 32.4454 19.0334C32.6837 17.0261 31.5992 16.0318 29.9364 15.4121L30.9795 18.9823C31.7821 18.7835 32.5913 18.5923 33.3829 18.4047C33.7434 18.3171 34.0933 18.2302 34.4318 18.1504L33.9627 20.502ZM31.1151 25.7834C31.505 28.3822 27.5921 29.2341 26.2151 29.5983L24.5336 24.0151C25.9107 23.6509 30.7068 23.0599 31.1151 25.7834ZM29.4668 19.6651C29.8272 22.0063 26.5015 22.7417 25.3392 23.0553L23.8055 17.9586C24.9677 17.645 29.0879 17.2025 29.4668 19.6651Z" fill="white"/>
+                        </svg>
+                        <span class="payment-name">Cryptocurrency</span>
+                    </label>
+                </div>
+                
+                <div class="payment-details" id="payment-details">
+                    <div class="mpesa-details active">
+                        <div class="mpesa-info">
+                            <h4>M-Pesa Payment Instructions</h4>
+                            <p>To complete your donation via M-Pesa, please follow these steps:</p>
+                        </div>
+                        <ol>
+                            <li>Go to M-Pesa on your phone</li>
+                            <li>Select "Lipa na M-Pesa"</li>
+                            <li>Select "Pay Bill"</li>
+                            <li>Enter Business Number: <strong>123456</strong></li>
+                            <li>Enter Account Number: <strong>DONATE-{{ case.id }}</strong></li>
+                            <li>Enter the amount you wish to donate</li>
+                            <li>Enter your M-Pesa PIN</li>
+                            <li>You'll receive a confirmation SMS</li>
+                            <li>Enter the M-Pesa Transaction ID below</li>
+                        </ol>
+                        <div class="form-group">
+                            <label for="transaction_id">M-Pesa Transaction ID:</label>
+                            <input type="text" id="transaction_id" name="transaction_id" placeholder="e.g., QJI7DKLT35">
+                        </div>
+                    </div>
+                    
+                    <div class="crypto-details">
+                        <div class="crypto-info">
+                            <h4>Cryptocurrency Donation Instructions</h4>
+                            <p>To complete your donation via cryptocurrency, please send your chosen amount to one of the following addresses:</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Bitcoin (BTC):</label>
+                            <div class="wallet-address">bc1q83dqv82h9levr8yqhc5k8kds66q28vfzgdq6vk</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Ethereum (ETH):</label>
+                            <div class="wallet-address">0x742d35Cc6634C0532925a3b844Bc454e4438f44e</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="crypto_tx">Transaction Hash:</label>
+                            <input type="text" id="crypto_tx" name="crypto_tx" placeholder="Paste your transaction hash here">
+                            <p class="help-text">After sending cryptocurrency, please paste the transaction hash here for verification.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="submit-container">
+                <button type="submit">Complete Donation</button>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        // JavaScript to handle payment method selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+            const paymentDetails = document.getElementById('payment-details');
+            const mpesaDetails = document.querySelector('.mpesa-details');
+            const cryptoDetails = document.querySelector('.crypto-details');
+            
+            paymentMethods.forEach(method => {
+                method.addEventListener('change', function() {
+                    paymentDetails.classList.add('active');
+                    
+                    if (this.value === 'mpesa') {
+                        mpesaDetails.classList.add('active');
+                        cryptoDetails.classList.remove('active');
+                    } else if (this.value === 'crypto') {
+                        cryptoDetails.classList.add('active');
+                        mpesaDetails.classList.remove('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!-- cases/templates/cases/ngo/list_cases.html -->
+{% extends 'cases/ngo/base_ngo.html' %}
+
+{% block page_title %}My Cases{% endblock %}
+
+{% block ngo_content %}
+<div class="mb-4">
+    <a href="{% url 'cases:case_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus-circle"></i> Create New Case
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">All Cases</h6>
+        
+        <!-- Filter Controls -->
+        <div class="dropdown no-arrow">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if status_filter %}Filter: {{ status_filter|title }}{% else %}Filter Cases{% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="filterDropdown">
+                <li><a class="dropdown-item" href="{% url 'cases:list_cases' %}">All Cases</a></li>
+                <li><a class="dropdown-item" href="{% url 'cases:list_cases' %}?status=open">Open</a></li>
+                <li><a class="dropdown-item" href="{% url 'cases:list_cases' %}?status=assigned">Assigned</a></li>
+                <li><a class="dropdown-item" href="{% url 'cases:list_cases' %}?status=in_progress">In Progress</a></li>
+                <li><a class="dropdown-item" href="{% url 'cases:list_cases' %}?status=review">Under Review</a></li>
+                <li><a class="dropdown-item" href="{% url 'cases:list_cases' %}?status=completed">Completed</a></li>
+                <li><a class="dropdown-item" href="{% url 'cases:list_cases' %}?status=closed">Closed</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Urgency</th>
+                        <th>Status</th>
+                        <th>Location</th>
+                        <th>Bounty</th>
+                        <th>Lawyer</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in page_obj %}
+                    <tr>
+                        <td>{{ case.title }}</td>
+                        <td>
+                            {% if case.urgency == 'low' %}
+                                <span class="badge bg-success">Low</span>
+                            {% elif case.urgency == 'medium' %}
+                                <span class="badge bg-info">Medium</span>
+                            {% elif case.urgency == 'high' %}
+                                <span class="badge bg-warning">High</span>
+                            {% elif case.urgency == 'critical' %}
+                                <span class="badge bg-danger">Critical</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if case.status == 'open' %}
+                                <span class="badge bg-primary">Open</span>
+                            {% elif case.status == 'assigned' %}
+                                <span class="badge bg-secondary">Assigned</span>
+                            {% elif case.status == 'in_progress' %}
+                                <span class="badge bg-info">In Progress</span>
+                            {% elif case.status == 'review' %}
+                                <span class="badge bg-warning">Under Review</span>
+                            {% elif case.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                            {% elif case.status == 'closed' %}
+                                <span class="badge bg-dark">Closed</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ case.location }}</td>
+                        <td>${{ case.bounty_amount }}</td>
+                        <td>
+                            {% if case.assigned_lawyer %}
+                                {{ case.assigned_lawyer.user.get_full_name }}
+                            {% else %}
+                                <span class="text-muted">Not Assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ case.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'cases:case_detail' pk=case.pk %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'cases:edit_case' pk=case.pk %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if case.status == 'open' %}
+                                    <a href="{% url 'cases:invite_lawyer' case_pk=case.pk %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-user-plus"></i>
+                                    </a>
+                                {% endif %}
+                                {% if case.status == 'review' %}
+                                    <a href="{% url 'cases:review_case' pk=case.pk %}" class="btn btn-sm btn-success">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No cases found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for i in page_obj.paginator.page_range %}
+                    {% if page_obj.number == i %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ i }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
