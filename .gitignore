@@ -14,4 +14,7 @@ staticfiles/
 .idea/
 *.sublime-project
 *.sublime-workspace
+.env
+*.env
+secrets.json
 
