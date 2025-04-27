@@ -15,7 +15,7 @@
 
         body {
             font-family: 'Catamaran', sans-serif;
-            background-color: bac;
+            background-color: black;
             color: #333;
         }
 
@@ -108,7 +108,7 @@
         }
 
         .card-body {
-            padding: 25px;
+            padding: 100px;
         }
 
         .card-title {
@@ -447,9 +447,129 @@
         .float {
             animation: float 3s ease-in-out infinite;
         }
+        
+        /* MetaMask Integration Styles */
+        .wallet-connect {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .wallet-btn {
+            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
+            border: none;
+            color: #333;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .wallet-btn:hover {
+            box-shadow: 0 5px 15px rgba(183, 149, 11, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .wallet-status {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 30px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .wallet-status.connected {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+        }
+        
+        .wallet-address {
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+        
+        /* Metamask notification modal */
+        .modal-metamask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .modal-title {
+            color: var(--ocean-blue-dark);
+            margin-bottom: 15px;
+        }
+        
+        .modal-icon {
+            font-size: 3rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+        
+        .modal-actions {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
     </style>
-</head>
-<body>
+
+    <!-- MetaMask Connection Button -->
+    <div class="wallet-connect">
+        <button id="connectWallet" class="wallet-btn">
+            <i class="fas fa-wallet"></i> Connect Wallet
+        </button>
+        <div id="walletStatus" class="wallet-status">
+            <span class="status-dot"></span>
+            <span>Connected: <span id="walletAddress" class="wallet-address"></span></span>
+        </div>
+    </div>
+    
+    <!-- MetaMask Modal -->
+    <div id="metamaskModal" class="modal-metamask">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-fox"></i>
+            </div>
+            <h3 class="modal-title">Connect with MetaMask</h3>
+            <p>Please connect your MetaMask wallet to use HakiChain's features.</p>
+            <div class="modal-actions">
+                <button id="closeModal" class="btn btn-secondary">Cancel</button>
+                <button id="installMetamask" class="btn btn-custom">Install MetaMask</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="container hero-content">
@@ -477,7 +597,7 @@
                         <div class="card-body text-center">
                             <h5 class="card-title">For NGOs</h5>
                             <p class="card-text">List legal cases, set bounties, and find qualified lawyers to tackle important justice issues.</p>
-                            <a href="#" class="btn btn-custom">Register as NGO</a>
+                            <a href="#" class="btn btn-custom register-btn">Register as NGO</a>
                         </div>
                     </div>
                 </div>
@@ -491,7 +611,7 @@
                         <div class="card-body text-center">
                             <h5 class="card-title">For Lawyers</h5>
                             <p class="card-text">Find cases that match your expertise, demonstrate impact, and earn bounties for your work.</p>
-                            <a href="#" class="btn btn-custom">Register as Lawyer</a>
+                            <a href="#" class="btn btn-custom register-btn">Register as Lawyer</a>
                         </div>
                     </div>
                 </div>
@@ -505,7 +625,7 @@
                         <div class="card-body text-center">
                             <h5 class="card-title">For Donors</h5>
                             <p class="card-text">Support important legal cases, track your impact, and help bring justice to those who need it most.</p>
-                            <a href="#" class="btn btn-custom">Register as Donor</a>
+                            <a href="#" class="btn btn-custom register-btn">Register as Donor</a>
                         </div>
                     </div>
                 </div>
@@ -593,7 +713,7 @@
                         <div class="testimonial-content">
                             "HakiChain helped our organization find qualified legal support for a complex environmental justice case. The platform's transparency and efficiency made all the difference."
                         </div>
-                        <div class="testimonial-author">Sarah Johnson</div>
+                        <div class="testimonial-author">Brandy Nabusu</div>
                         <div class="testimonial-role">Environmental NGO Director</div>
                     </div>
                 </div>
@@ -605,7 +725,7 @@
                         <div class="testimonial-content">
                             "As a human rights lawyer, HakiChain connects me with meaningful cases where I can make a real difference while being fairly compensated for my expertise."
                         </div>
-                        <div class="testimonial-author">David Chen</div>
+                        <div class="testimonial-author">Graham Wairimu</div>
                         <div class="testimonial-role">Human Rights Attorney</div>
                     </div>
                 </div>
@@ -620,7 +740,7 @@
                 <div class="col-lg-8 animate-on-scroll">
                     <h3 class="mb-4" style="color: var(--ocean-blue-dark);">Ready to Join the Justice Movement?</h3>
                     <p class="mb-4">Be part of our growing community working to make legal support accessible to all.</p>
-                    <a href="#" class="btn btn-custom btn-lg pulse">Get Started Today</a>
+                    <a href="#" class="btn btn-custom btn-lg pulse register-btn">Get Started Today</a>
                 </div>
             </div>
         </div>
@@ -682,29 +802,130 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    
+    <!-- MetaMask Integration Script -->
     <script>
-        // Animation on scroll
-        document.addEventListener('DOMContentLoaded', function() {
-            const animateElements = document.querySelectorAll('.animate-on-scroll');
-            
-            function checkInView() {
-                animateElements.forEach(function(element) {
-                    const elementTop = element.getBoundingClientRect().top;
-                    const windowHeight = window.innerHeight;
-                    
-                    if (elementTop < windowHeight - 100) {
-                        element.classList.add('visible');
+        document.addEventListener('DOMContentLoaded', () => {
+            // Element selectors
+            const connectWalletBtn = document.getElementById('connectWallet');
+            const walletStatus = document.getElementById('walletStatus');
+            const walletAddress = document.getElementById('walletAddress');
+            const metamaskModal = document.getElementById('metamaskModal');
+            const closeModalBtn = document.getElementById('closeModal');
+            const installMetamaskBtn = document.getElementById('installMetamask');
+            const registerButtons = document.querySelectorAll('.register-btn');
+        
+            // Check if MetaMask is installed
+            const isMetaMaskInstalled = () => typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
+        
+            // Format Ethereum address
+            const formatAddress = address => `${address.slice(0, 6)}...${address.slice(-4)}`;
+        
+            // Handle wallet connection
+            const connectWallet = async () => {
+                if (!isMetaMaskInstalled()) {
+                    metamaskModal.style.display = 'flex';
+                    return;
+                }
+        
+                try {
+                    connectWalletBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+                    if (accounts.length === 0) {
+                        throw new Error('No accounts found.');
+                    }
+        
+                    const account = accounts[0];
+                    walletAddress.textContent = formatAddress(account);
+                    walletStatus.classList.add('connected');
+                    connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connected';
+        
+                    listenToWalletEvents();
+        
+                } catch (err) {
+                    console.error('MetaMask connection error:', err.message);
+                    alert(`MetaMask Connection Failed: ${err.message}`);
+                    connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+                }
+            };
+        
+            // Listen for account and network changes
+            const listenToWalletEvents = () => {
+                if (!window.ethereum._hasWalletListeners) {
+                    window.ethereum._hasWalletListeners = true;
+        
+                    window.ethereum.on('accountsChanged', accounts => {
+                        if (accounts.length === 0) {
+                            walletStatus.classList.remove('connected');
+                            walletAddress.textContent = '';
+                            connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+                        } else {
+                            walletAddress.textContent = formatAddress(accounts[0]);
+                        }
+                    });
+        
+                    window.ethereum.on('chainChanged', () => {
+                        window.location.reload();
+                    });
+                }
+            };
+        
+            // Animate elements on scroll
+            const animateOnScroll = () => {
+                document.querySelectorAll('.animate-on-scroll').forEach(el => {
+                    const top = el.getBoundingClientRect().top;
+                    if (top < window.innerHeight - 50) {
+                        el.classList.add('visible');
                     }
                 });
-            }
-            
-            // Initial check
-            checkInView();
-            
-            // Check on scroll
-            window.addEventListener('scroll', checkInView);
+            };
+        
+            // Event bindings
+            connectWalletBtn.addEventListener('click', connectWallet);
+            closeModalBtn.addEventListener('click', () => metamaskModal.style.display = 'none');
+            installMetamaskBtn.addEventListener('click', () => window.open('https://metamask.io/download.html', '_blank'));
+            window.addEventListener('click', e => e.target === metamaskModal && (metamaskModal.style.display = 'none'));
+            window.addEventListener('load', animateOnScroll);
+            window.addEventListener('scroll', animateOnScroll);
+        
+            // Register buttons
+            registerButtons.forEach(button => {
+                button.addEventListener('click', async e => {
+                    e.preventDefault();
+                    if (!walletStatus.classList.contains('connected')) {
+                        alert('Please connect your wallet to register.');
+                        await connectWallet();
+                        return;
+                    }
+        
+                    const label = button.textContent.toLowerCase();
+                    let userType = 'user';
+                    if (label.includes('ngo')) userType = 'ngo';
+                    else if (label.includes('lawyer')) userType = 'lawyer';
+                    else if (label.includes('donor')) userType = 'donor';
+        
+                    alert(`Redirecting to ${userType} registration...`);
+                    // window.location.href = `/register/${userType}`;
+                });
+            });
+        
+            // Auto-check if MetaMask is already connected
+            const autoConnect = async () => {
+                if (isMetaMaskInstalled()) {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        walletAddress.textContent = formatAddress(accounts[0]);
+                        walletStatus.classList.add('connected');
+                        connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connected';
+                        listenToWalletEvents();
+                    }
+                }
+            };
+        
+            autoConnect();
         });
-    </script>
-</body>
-</html>
+        </script>
+        
 {% endblock %}
