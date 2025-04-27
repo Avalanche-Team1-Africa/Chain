@@ -26,6 +26,8 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('cases/', include(('cases.urls', 'cases'), namespace='cases')),
     path('', RedirectView.as_view(pattern_name='accounts:dashboard'), name='home'),
+    path('donations/', include(('donations.urls', 'donations'), namespace='donations')),  # Include donations app
+    path('chat/', include(('chat.urls', 'chat'), namespace='chat')),
 ]
 
 if settings.DEBUG:
