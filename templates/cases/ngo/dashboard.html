@@ -1,97 +1,409 @@
-<div style="padding: 40px;">
-    {% if cases %}
-        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-            {% for case in cases %}
-                <div style="
-                    flex: 1 1 calc(33% - 20px);
-                    background: rgba(255, 255, 255, 0.9);
-                    border-radius: 15px;
-                    padding: 20px;
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-                    transition: transform 0.3s ease, box-shadow 0.3s ease;
-                    position: relative;
-                " 
-                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 16px 30px rgba(0,0,0,0.2)'"
-                onmouseout="this.style.transform='none'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.1)'"
-                >
-
-                    <!-- Urgent Badge -->
-                    {% if case.urgency == 'high' %}
-                        <span style="
-                            position: absolute;
-                            top: 15px;
-                            right: 15px;
-                            background: #dc3545;
-                            color: white;
-                            padding: 5px 10px;
-                            border-radius: 50px;
-                            font-size: 0.8rem;
-                            font-weight: bold;
-                        ">🚨 Urgent</span>
-                    {% endif %}
-
-                    <!-- Title -->
-                    <h5 style="margin-bottom: 10px; color: #0d6efd;">
-                        <a href="{% url 'cases:case_detail' pk=case.pk %}" style="text-decoration: none; color: inherit;">
-                            {{ case.title|truncatechars:40 }}
-                        </a>
-                    </h5>
-
-                    <!-- Category -->
-                    <p style="margin: 5px 0;"><strong>Category:</strong> {{ case.category.name }}</p>
-
-                    <!-- Status -->
-                    <p style="margin: 5px 0;">
-                        <strong>Status:</strong>
-                        {% if case.status == 'open' %}
-                            <span style="background: #ffc107; color: #212529; padding: 4px 8px; border-radius: 5px;">Open</span>
-                        {% elif case.status == 'assigned' %}
-                            <span style="background: #0dcaf0; color: #212529; padding: 4px 8px; border-radius: 5px;">Assigned</span>
-                        {% elif case.status == 'in_progress' %}
-                            <span style="background: #6c757d; color: white; padding: 4px 8px; border-radius: 5px;">In Progress</span>
-                        {% elif case.status == 'review' %}
-                            <span style="background: #212529; color: white; padding: 4px 8px; border-radius: 5px;">Under Review</span>
-                        {% elif case.status == 'completed' %}
-                            <span style="background: #198754; color: white; padding: 4px 8px; border-radius: 5px;">Completed</span>
-                        {% endif %}
-                    </p>
-
-                    <!-- Created -->
-                    <p style="margin: 5px 0; color: #6c757d;"><i class="fa fa-calendar-alt"></i> {{ case.created_at|date:"M d, Y" }}</p>
-
-                    <!-- Lawyer -->
-                    <p style="margin: 5px 0;">
-                        <strong>Lawyer:</strong>
-                        {% if case.assigned_lawyer %}
-                            {{ case.assigned_lawyer.user.get_full_name|default:case.assigned_lawyer.user.username }}
-                        {% else %}
-                            <span style="color: #6c757d; font-style: italic;">Not assigned</span>
-                        {% endif %}
-                    </p>
-
-                    <!-- Actions -->
-                    <div style="display: flex; justify-content: space-around; margin-top: 15px;">
-                        <a href="{% url 'cases:case_detail' pk=case.pk %}" title="View" style="padding: 5px 10px; border: 1px solid #0d6efd; border-radius: 5px; color: #0d6efd;">
-                            <i class="fa fa-eye"></i>
-                        </a>
-                        <a href="{% url 'cases:edit_case' pk=case.pk %}" title="Edit" style="padding: 5px 10px; border: 1px solid #6c757d; border-radius: 5px; color: #6c757d;">
-                            <i class="fa fa-edit"></i>
-                        </a>
-                        {% if case.status == 'open' %}
-                            <a href="{% url 'cases:invite_lawyers' case_pk=case.pk %}" title="Invite" style="padding: 5px 10px; border: 1px solid #198754; border-radius: 5px; color: #198754;">
-                                <i class="fa fa-user-plus"></i>
-                            </a>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endfor %}
+<div class="sidebar" style="
+    width: 250px;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+">
+    <!-- Logo and Brand -->
+    <div style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="margin: 0; font-weight: 700;">HakiChain</h3>
+        <small style="opacity: 0.7;">NGO Dashboard</small>
+    </div>
+    
+    <!-- User Profile Summary -->
+    <div style="padding: 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #3498db; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+            <i class="fa fa-user" style="font-size: 24px;"></i>
         </div>
-    {% else %}
-        <!-- No Cases -->
-        <div style="text-align: center; padding: 100px 20px; color: #6c757d;">
-            <i class="fa fa-folder-open" style="font-size: 60px; opacity: 0.3;"></i>
-            <h4 style="margin-top: 20px;">No cases found</h4>
-            <p>You’re all caught up, boss 🙌</p>
-        </div>
-    {% endif %}
+        <h5 style="margin: 10px 0 5px;">{{ request.user.get_full_name }}</h5>
+        <span style="font-size: 0.8rem; opacity: 0.7;">{{ request.user.email }}</span>
+    </div>
+    
+    <!-- Navigation Links -->
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        <!-- Dashboard Home -->
+        <li>
+            <a href="{% url 'cases:ngo_dashboard' %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'ngo_dashboard' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-tachometer-alt" style="width: 20px; margin-right: 10px;"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        
+        <!-- Case Management Section -->
+        <li style="margin-top: 10px;">
+            <div style="padding: 10px 20px 5px; font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
+                Case Management
+            </div>
+        </li>
+        
+        <!-- List Cases -->
+        <li>
+            <a href="{% url 'cases:list_cases' %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'list_cases' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-folder" style="width: 20px; margin-right: 10px;"></i>
+                <span>My Cases</span>
+            </a>
+        </li>
+        
+        <!-- Create Case -->
+        <li>
+            <a href="{% url 'cases:case_create' %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'case_create' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-plus-circle" style="width: 20px; margin-right: 10px;"></i>
+                <span>Create Case</span>
+            </a>
+        </li>
+        
+        <!-- Case Details (if applicable) -->
+        {% if case %}
+        <li>
+            <a href="{% url 'cases:case_detail' pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'case_detail' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-info-circle" style="width: 20px; margin-right: 10px;"></i>
+                <span>Case Details</span>
+            </a>
+        </li>
+        
+        <!-- Case History (if applicable) -->
+        <li>
+            <a href="{% url 'cases:case_history' pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'case_history' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-history" style="width: 20px; margin-right: 10px;"></i>
+                <span>Case History</span>
+            </a>
+        </li>
+        
+        <!-- Case Updates (if applicable) -->
+        <li>
+            <a href="{% url 'cases:case_updates' pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'case_updates' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-bell" style="width: 20px; margin-right: 10px;"></i>
+                <span>Case Updates</span>
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- Lawyer Section -->
+        <li style="margin-top: 10px;">
+            <div style="padding: 10px 20px 5px; font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
+                Lawyer Management
+            </div>
+        </li>
+        
+        <!-- Applications (conditional if case is selected) -->
+        {% if case %}
+        <li>
+            <a href="{% url 'cases:view_applications' case_pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'view_applications' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-user-check" style="width: 20px; margin-right: 10px;"></i>
+                <span>View Applications</span>
+            </a>
+        </li>
+        
+        <!-- Invite Lawyers -->
+        <li>
+            <a href="{% url 'cases:invite_lawyers' case_pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'invite_lawyers' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-user-plus" style="width: 20px; margin-right: 10px;"></i>
+                <span>Invite Lawyers</span>
+            </a>
+        </li>
+        
+        <!-- Rate Lawyer -->
+        <li>
+            <a href="{% url 'cases:rate_lawyer' case_pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'rate_lawyer' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-star" style="width: 20px; margin-right: 10px;"></i>
+                <span>Rate Lawyer</span>
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- Case Progress Section -->
+        <li style="margin-top: 10px;">
+            <div style="padding: 10px 20px 5px; font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
+                Case Progress
+            </div>
+        </li>
+        
+        <!-- Set Milestones (if case is selected) -->
+        {% if case %}
+        <li>
+            <a href="{% url 'cases:set_milestones' case_pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'set_milestones' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-flag" style="width: 20px; margin-right: 10px;"></i>
+                <span>Set Milestones</span>
+            </a>
+        </li>
+        
+        <!-- Add Update -->
+        <li>
+            <a href="{% url 'cases:add_update' case_pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'add_update' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-comment-medical" style="width: 20px; margin-right: 10px;"></i>
+                <span>Add Update</span>
+            </a>
+        </li>
+        
+        <!-- Upload Document -->
+        <li>
+            <a href="{% url 'cases:upload_document' case_pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'upload_document' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-file-upload" style="width: 20px; margin-right: 10px;"></i>
+                <span>Upload Document</span>
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- Financial Section -->
+        <li style="margin-top: 10px;">
+            <div style="padding: 10px 20px 5px; font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
+                Financial
+            </div>
+        </li>
+        
+        <!-- Funding History (if case is selected) -->
+        {% if case %}
+        <li>
+            <a href="{% url 'cases:funding_history' pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'funding_history' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-money-bill-wave" style="width: 20px; margin-right: 10px;"></i>
+                <span>Funding History</span>
+            </a>
+        </li>
+        
+        <!-- View Donations -->
+        <li>
+            <a href="{% url 'cases:view_donations' case_pk=case.pk %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'view_donations' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-hand-holding-usd" style="width: 20px; margin-right: 10px;"></i>
+                <span>View Donations</span>
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- Profile & Settings -->
+        <li style="margin-top: 10px;">
+            <div style="padding: 10px 20px 5px; font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
+                Account
+            </div>
+        </li>
+        
+        <!-- Profile -->
+        <li>
+            <a href="{% url 'accounts:ngo_profile' %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'ngo_profile' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-id-card" style="width: 20px; margin-right: 10px;"></i>
+                <span>Profile</span>
+            </a>
+        </li>
+        
+        <!-- Settings -->
+        <li>
+            <a href="{% url 'accounts:settings' %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+                {% if request.resolver_match.url_name == 'settings' %}
+                    background-color: rgba(255,255,255,0.1);
+                    border-left-color: #3498db;
+                {% endif %}
+            ">
+                <i class="fa fa-cog" style="width: 20px; margin-right: 10px;"></i>
+                <span>Settings</span>
+            </a>
+        </li>
+        
+        <!-- Log Out -->
+        <li style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+            <a href="{% url 'accounts:logout' %}" style="
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                color: #e74c3c;
+                text-decoration: none;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+            ">
+                <i class="fa fa-sign-out-alt" style="width: 20px; margin-right: 10px;"></i>
+                <span>Log Out</span>
+            </a>
+        </li>
+    </ul>
 </div>

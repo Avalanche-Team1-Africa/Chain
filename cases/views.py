@@ -8,7 +8,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
 from django.db.models import Avg
-
+from django.db.models import Q
 from accounts import models
 from .models import (
     Case,
@@ -329,45 +329,59 @@ def update_application_status(request, application_pk, status):
     messages.success(request, message)
     return redirect('cases:view_applications', case_pk=application.case.pk)
 
-
 @login_required
 def invite_lawyers(request, case_pk):
-    """Directly invite a lawyer to a case"""
+    """NGO invites a lawyer directly to a case."""
     case = get_object_or_404(Case, pk=case_pk)
+
+    # Check if current user is the NGO owner
     if request.user != case.ngo or request.user.role != 'NGO':
-        return HttpResponseForbidden("You don't have permission to invite lawyers to this case")
+        return HttpResponseForbidden("You don't have permission to invite lawyers to this case.")
+
     if request.method == 'POST':
         form = InviteLawyerForm(request.POST)
         if form.is_valid():
-            lawyer_id = form.cleaned_data['lawyer']
-            lawyer = get_object_or_404(LawyerProfile, pk=lawyer_id)
+            # Get lawyer ID from form (form should be a ChoiceField or ModelChoiceField)
+            lawyer = form.cleaned_data['lawyer']  # Now lawyer is already a LawyerProfile instance!
+
+            # Check if application already exists (optional but good)
+            application_exists = LawyerApplication.objects.filter(case=case, lawyer=lawyer).exists()
+            if application_exists:
+                messages.warning(request, f"Lawyer {lawyer.user.get_full_name()} has already been invited or applied.")
+                return redirect('cases:case_detail', pk=case.pk)
+
+            # Create the Lawyer Application
             LawyerApplication.objects.create(
                 case=case,
                 lawyer=lawyer,
                 cover_letter="Invited directly by NGO",
                 status='accepted'
             )
+
+            # Update the Case
             case.assigned_lawyer = lawyer
             case.status = 'assigned'
             case.save()
+
+            # Notify the Lawyer
             send_mail(
-                f'You have been invited to a case: {case.title}',
-                f'You have been directly invited to work on the case "{case.title}". Please log in to the platform to view the details.',
-                settings.DEFAULT_FROM_EMAIL,
-                [lawyer.user.email],
+                subject=f"You've been invited to a case: {case.title}",
+                message=f"Hello {lawyer.user.get_full_name()},\n\nYou have been invited to work on the case '{case.title}'. Please log in to view the case details.\n\nBest regards,\nThe Team",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[lawyer.user.email],
                 fail_silently=False,
             )
-            messages.success(request, f"Lawyer {lawyer.user.get_full_name()} has been invited to this case!")
+
+            messages.success(request, f"Lawyer {lawyer.user.get_full_name()} has been invited successfully.")
             return redirect('cases:case_detail', pk=case.pk)
     else:
         form = InviteLawyerForm()
+
     context = {
-        'form': form,
         'case': case,
+        'form': form,
     }
     return render(request, 'cases/ngo/invite_lawyer.html', context)
-
-
 @login_required
 def review_completed_case(request, pk):
     """Review and approve a completed case"""
@@ -537,68 +551,63 @@ def browse_cases(request):
         }
         return render(request, 'cases/donor/browse_cases.html', context)
     
-    # If not a donor, check if lawyer (keeping original functionality)
-    elif request.user.role == 'LAWYER' and hasattr(request.user, 'lawyer_profile'):
-        # Get lawyer profile
-        lawyer_profile = request.user.lawyer_profile
-        
-        # Get all open cases
-        cases = Case.objects.filter(status='open')
-        
-        # Filter by category if requested
-        category_filter = request.GET.get('category', '')
-        if category_filter:
-            cases = cases.filter(category__id=category_filter)
-        
-        # Filter by urgency if requested
-        urgency_filter = request.GET.get('urgency', '')
-        if urgency_filter:
-            cases = cases.filter(urgency=urgency_filter)
-        
-        # Filter by location if requested
-        location_filter = request.GET.get('location', '')
-        if location_filter:
-            cases = cases.filter(location__icontains=location_filter)
-        
-        # Check which cases lawyer has already applied for
-        applied_case_ids = LawyerApplication.objects.filter(
-            lawyer=lawyer_profile
-        ).values_list('case_id', flat=True)
-        
-        # Get all case categories for filter
-        categories = CaseCategory.objects.all()
-        
-        paginator = Paginator(cases, 10)  # 10 cases per page
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        
-        context = {
-            'page_obj': page_obj,
-            'applied_case_ids': applied_case_ids,
-            'categories': categories,
-            'category_filter': category_filter,
-            'urgency_filter': urgency_filter,
-            'location_filter': location_filter,
-        }
-        return render(request, 'cases/lawyer/browse_cases.html', context)
-    else:
-        return HttpResponseForbidden("You must be a donor or lawyer to access this page")
-    
 @login_required
 def lawyer_browse_cases(request):
-    """View available cases for lawyers to apply"""
     if request.user.role != 'LAWYER' or not hasattr(request.user, 'lawyer_profile'):
         return HttpResponseForbidden("You must be a lawyer to access this page")
-    
-    # Get all available cases (adjust query as needed)
-    available_cases = Case.objects.filter(status='OPEN')
-    
-    # Render a template with the cases
-    return render(request, 'cases/browse_cases.html', {
-        'cases': available_cases
-    })
 
-login_required
+    lawyer_profile = request.user.lawyer_profile
+    cases = Case.objects.filter(status='open').order_by('-created_at')
+
+    # Filtering by category
+    category_filter = request.GET.get('category')
+    if category_filter:
+        cases = cases.filter(category_id=category_filter)
+
+    # Filtering by urgency
+    urgency_filter = request.GET.get('urgency')
+    if urgency_filter:
+        cases = cases.filter(urgency=urgency_filter)
+
+    # Filtering by location
+    location_filter = request.GET.get('location')
+    if location_filter:
+        cases = cases.filter(location__icontains=location_filter)
+
+    # Get applied case IDs
+    applied_case_ids = LawyerApplication.objects.filter(
+        lawyer=lawyer_profile
+    ).values_list('case_id', flat=True)
+
+    # Pagination
+    paginator = Paginator(cases, 10)  # Show 10 cases per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'cases': cases,
+        'page_obj': page_obj,
+        'applied_case_ids': applied_case_ids,
+        'categories': CaseCategory.objects.all(),
+        'category_filter': category_filter,
+        'urgency_filter': urgency_filter,
+        'location_filter': location_filter,
+    }
+
+    return render(request, 'cases/lawyer/browse_cases.html', context)
+@login_required
+def redirect_browse_cases(request):
+    if hasattr(request.user, 'donor_profile') and request.user.role == 'DONOR':
+        return redirect('donations:browse_cases')
+    elif request.user.role == 'LAWYER' and hasattr(request.user, 'lawyer_profile'):
+        return redirect('cases:lawyer_browse_cases')
+    else:
+        return HttpResponseForbidden("You must be a donor or lawyer to access this page")
+
+
+
+
+@login_required
 def search_cases(request):
     query = request.GET.get('q', '')
     cases = Case.objects.none()
@@ -674,66 +683,66 @@ def lawyer_cases(request):
 
 
 # 3. Manage Active Case Portfolio
-@login_required
-def browse_cases(request):
-    """View available cases for lawyers to apply"""
-    if request.user.role != 'LAWYER' or not hasattr(request.user, 'lawyer_profile'):
-        return HttpResponseForbidden("You must be a lawyer to access this page")
+# @login_required
+# def browse_cases(request):
+#     """View available cases for lawyers to apply"""
+#     if request.user.role != 'LAWYER' or not hasattr(request.user, 'lawyer_profile'):
+#         return HttpResponseForbidden("You must be a lawyer to access this page")
     
-    # Get lawyer profile
-    lawyer_profile = request.user.lawyer_profile
+#     # Get lawyer profile
+#     lawyer_profile = request.user.lawyer_profile
     
-    # Get all open cases
-    cases = Case.objects.filter(status='open')
+#     # Get all open cases
+#     cases = Case.objects.filter(status='open')
     
-    # Filter by category if requested
-    category_filter = request.GET.get('category', '')
-    if category_filter:
-        cases = cases.filter(category__id=category_filter)
+#     # Filter by category if requested
+#     category_filter = request.GET.get('category', '')
+#     if category_filter:
+#         cases = cases.filter(category__id=category_filter)
     
-    # Filter by urgency if requested
-    urgency_filter = request.GET.get('urgency', '')
-    if urgency_filter:
-        cases = cases.filter(urgency=urgency_filter)
+#     # Filter by urgency if requested
+#     urgency_filter = request.GET.get('urgency', '')
+#     if urgency_filter:
+#         cases = cases.filter(urgency=urgency_filter)
     
-    # Filter by location if requested
-    location_filter = request.GET.get('location', '')
-    if location_filter:
-        cases = cases.filter(location__icontains=location_filter)
+#     # Filter by location if requested
+#     location_filter = request.GET.get('location', '')
+#     if location_filter:
+#         cases = cases.filter(location__icontains=location_filter)
         
-    # Filter by bounty amount (new)
-    min_bounty = request.GET.get('min_bounty', '')
-    if min_bounty and min_bounty.isdigit():
-        cases = cases.filter(bounty_amount__gte=int(min_bounty))
+#     # Filter by bounty amount (new)
+#     min_bounty = request.GET.get('min_bounty', '')
+#     if min_bounty and min_bounty.isdigit():
+#         cases = cases.filter(bounty_amount__gte=int(min_bounty))
     
-    # Filter by case complexity (new)
-    complexity_filter = request.GET.get('complexity', '')
-    if complexity_filter:
-        cases = cases.filter(complexity=complexity_filter)
+#     # Filter by case complexity (new)
+#     complexity_filter = request.GET.get('complexity', '')
+#     if complexity_filter:
+#         cases = cases.filter(complexity=complexity_filter)
     
-    # Check which cases lawyer has already applied for
-    applied_case_ids = LawyerApplication.objects.filter(
-        lawyer=lawyer_profile
-    ).values_list('case_id', flat=True)
+#     # Check which cases lawyer has already applied for
+#     applied_case_ids = LawyerApplication.objects.filter(
+#         lawyer=lawyer_profile
+#     ).values_list('case_id', flat=True)
     
-    # Get all case categories for filter
-    categories = CaseCategory.objects.all()
+#     # Get all case categories for filter
+#     categories = CaseCategory.objects.all()
     
-    paginator = Paginator(cases, 10)  # 10 cases per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+#     paginator = Paginator(cases, 10)  # 10 cases per page
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
     
-    context = {
-        'page_obj': page_obj,
-        'applied_case_ids': applied_case_ids,
-        'categories': categories,
-        'category_filter': category_filter,
-        'urgency_filter': urgency_filter,
-        'location_filter': location_filter,
-        'min_bounty': min_bounty,
-        'complexity_filter': complexity_filter,
-    }
-    return render(request, 'cases/lawyer/browse_cases.html', context)
+#     context = {
+#         'page_obj': page_obj,
+#         'applied_case_ids': applied_case_ids,
+#         'categories': categories,
+#         'category_filter': category_filter,
+#         'urgency_filter': urgency_filter,
+#         'location_filter': location_filter,
+#         'min_bounty': min_bounty,
+#         'complexity_filter': complexity_filter,
+#     }
+#     return render(request, 'cases/lawyer/browse_cases.html', context)
 
 @login_required
 def case_detail_lawyer(request, pk):

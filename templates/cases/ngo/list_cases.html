@@ -94,7 +94,7 @@
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 {% if case.status == 'open' %}
-                                    <a href="{% url 'cases:invite_lawyer' case_pk=case.pk %}" class="btn btn-sm btn-primary">
+                                    <a href="{% url 'cases:invite_lawyers' case_pk=case.pk %}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-user-plus"></i>
                                     </a>
                                 {% endif %}

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Set Milestones - {{ case.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'cases:ngo_dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cases:case_detail' case.pk %}">{{ case.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Set Milestones</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Set Milestones for {{ case.title }}</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div id="milestones-container">
+                    {% if milestones %}
+                        {% for milestone in milestones %}
+                            <div class="milestone-item mb-4 p-3 border rounded">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Title</label>
+                                        <input type="text" name="milestone_title_{{ forloop.counter0 }}" class="form-control" value="{{ milestone.title }}" required>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Target Date</label>
+                                        <input type="date" name="milestone_date_{{ forloop.counter0 }}" class="form-control" value="{{ milestone.target_date|date:'Y-m-d' }}" required>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Status</label>
+                                        <select name="milestone_status_{{ forloop.counter0 }}" class="form-select">
+                                            <option value="pending" {% if milestone.status == 'pending' %}selected{% endif %}>Pending</option>
+                                            <option value="in_progress" {% if milestone.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                            <option value="completed" {% if milestone.status == 'completed' %}selected{% endif %}>Completed</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea name="milestone_description_{{ forloop.counter0 }}" class="form-control" rows="3">{{ milestone.description }}</textarea>
+                                </div>
+                                <input type="hidden" name="milestone_id_{{ forloop.counter0 }}" value="{{ milestone.id }}">
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-sm btn-danger remove-milestone" data-index="{{ forloop.counter0 }}">Remove</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="milestone-item mb-4 p-3 border rounded">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" name="milestone_title_0" class="form-control" required>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Target Date</label>
+                                    <input type="date" name="milestone_date_0" class="form-control" required>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select name="milestone_status_0" class="form-select">
+                                        <option value="pending">Pending</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea name="milestone_description_0" class="form-control" rows="3"></textarea>
+                            </div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-sm btn-danger remove-milestone" data-index="0">Remove</button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <button type="button" id="add-milestone" class="btn btn-outline-secondary">
+                        <i class="bi bi-plus-circle"></i> Add Milestone
+                    </button>
+                </div>
+
+                <input type="hidden" id="milestone-count" name="milestone_count" value="{% if milestones %}{{ milestones|length }}{% else %}1{% endif %}">
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'cases:case_detail' case.pk %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Milestones</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const milestonesContainer = document.getElementById('milestones-container');
+        const addMilestoneBtn = document.getElementById('add-milestone');
+        const milestoneCountInput = document.getElementById('milestone-count');
+        let milestoneCount = parseInt(milestoneCountInput.value);
+
+        // Add new milestone
+        addMilestoneBtn.addEventListener('click', function() {
+            const newIndex = milestoneCount;
+            const milestoneTemplate = `
+                <div class="milestone-item mb-4 p-3 border rounded">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="milestone_title_${newIndex}" class="form-control" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Target Date</label>
+                            <input type="date" name="milestone_date_${newIndex}" class="form-control" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="milestone_status_${newIndex}" class="form-select">
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="milestone_description_${newIndex}" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-sm btn-danger remove-milestone" data-index="${newIndex}">Remove</button>
+                    </div>
+                </div>
+            `;
+            
+            // Add the new milestone HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = milestoneTemplate;
+            milestonesContainer.appendChild(tempDiv.firstElementChild);
+            
+            // Increment the milestone count
+            milestoneCount++;
+            milestoneCountInput.value = milestoneCount;
+            
+            // Add event listener to the new remove button
+            setupRemoveButtons();
+        });
+
+        // Function to set up remove buttons
+        function setupRemoveButtons() {
+            document.querySelectorAll('.remove-milestone').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (document.querySelectorAll('.milestone-item').length > 1) {
+                        this.closest('.milestone-item').remove();
+                        // No need to decrement milestoneCount as we'll count them on the server
+                    } else {
+                        alert('You must have at least one milestone.');
+                    }
+                });
+            });
+        }
+
+        // Initial setup of remove buttons
+        setupRemoveButtons();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}NGO Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2>{{ ngo.name }} Profile</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            {% if ngo.logo %}
+                                <img src="{{ ngo.logo.url }}" alt="{{ ngo.name }} Logo" class="img-fluid mb-3">
+                            {% else %}
+                                <div class="bg-light p-4 text-center mb-3">
+                                    <i class="fas fa-building fa-3x text-secondary"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="list-group mb-4">
+                                <a href="{% url 'accounts:ngo_edit_profile' %}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-edit"></i> Edit Profile
+                                </a>
+                                <a href="{% url 'ngo_projects' %}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-project-diagram"></i> Manage Projects
+                                </a>
+                                <a href="{% url 'ngo_donations' %}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-hand-holding-usd"></i> Donation History
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <h4>About Us</h4>
+                            <p>{{ ngo.description }}</p>
+
+                            <hr>
+
+                            <h4>Contact Information</h4>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-envelope"></i> {{ ngo.email }}</li>
+                                <li><i class="fas fa-phone"></i> {{ ngo.phone_number }}</li>
+                                <li><i class="fas fa-map-marker-alt"></i> {{ ngo.address }}</li>
+                            </ul>
+
+                            <hr>
+
+                            <h4>Areas of Focus</h4>
+                            <div class="d-flex flex-wrap">
+                                {% for category in ngo.categories.all %}
+                                    <span class="badge bg-info text-dark me-2 mb-2 p-2">{{ category.name }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <hr>
+
+                            <h4>Our Projects</h4>
+                            {% if ngo.projects.all %}
+                                <div class="row">
+                                    {% for project in ngo.projects.all|slice:":3" %}
+                                        <div class="col-md-4 mb-3">
+                                            <div class="card h-100">
+                                                {% if project.image %}
+                                                    <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <h5 class="card-title">{{ project.title }}</h5>
+                                                    <p class="card-text">{{ project.description|truncatechars:100 }}</p>
+                                                </div>
+                                                <div class="card-footer">
+                                                    <a href="{% url 'project_detail' project.id %}" class="btn btn-sm btn-primary">View Details</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% if ngo.projects.count > 3 %}
+                                    <div class="text-center">
+                                        <a href="{% url 'ngo_projects' %}" class="btn btn-outline-primary">View All Projects</a>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-muted">No projects created yet.</p>
+                                <a href="{% url 'create_project' %}" class="btn btn-primary">Create Your First Project</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

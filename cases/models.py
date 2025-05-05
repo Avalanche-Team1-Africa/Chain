@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from django.utils import timezone
 from accounts.models import LawyerProfile
 
 class CaseCategory(models.Model):
@@ -31,6 +30,12 @@ class Case(models.Model):
         ('critical', 'Critical'),
     )
 
+    COMPLEXITY_CHOICES = (
+        ('simple', 'Simple'),
+        ('moderate', 'Moderate'),
+        ('complex', 'Complex'),
+    )
+
     title = models.CharField(max_length=200)
     description = models.TextField()
     ngo = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cases')
@@ -38,6 +43,7 @@ class Case(models.Model):
     bounty_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     location = models.CharField(max_length=200)
     urgency = models.CharField(max_length=20, choices=URGENCY_CHOICES, default='medium')
+    complexity = models.CharField(max_length=20, choices=COMPLEXITY_CHOICES, default='moderate')
     assigned_lawyer = models.ForeignKey(LawyerProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_cases')
     shortlisted_lawyers = models.ManyToManyField(LawyerProfile, related_name='shortlisted_cases', blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
@@ -109,8 +115,8 @@ class LawyerApplication(models.Model):
         ('rejected', 'Rejected'),
     )
 
-    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name='applications')
-    lawyer = models.ForeignKey(LawyerProfile, on_delete=models.CASCADE, related_name='applications')
+    case = models.ForeignKey('cases.Case', on_delete=models.CASCADE, related_name='applications')
+    lawyer = models.ForeignKey('accounts.LawyerProfile', on_delete=models.CASCADE, related_name='applications')
     cover_letter = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     applied_at = models.DateTimeField(auto_now_add=True)
@@ -118,9 +124,12 @@ class LawyerApplication(models.Model):
 
     class Meta:
         unique_together = ('case', 'lawyer')
+        verbose_name = 'Lawyer Application'
+        verbose_name_plural = 'Lawyer Applications'
 
     def __str__(self):
         return f"{self.lawyer.user.get_full_name()} applying for {self.case.title}"
+
 
 
 class LawyerRating(models.Model):
@@ -131,17 +140,17 @@ class LawyerRating(models.Model):
         (4, '4 Stars'),
         (5, '5 Stars'),
     )
-    
+
     case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name='lawyer_ratings')
     lawyer = models.ForeignKey(LawyerProfile, on_delete=models.CASCADE, related_name='ratings')
     rating = models.IntegerField(choices=RATING_CHOICES)
     review = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    
+
     class Meta:
         unique_together = ('case', 'lawyer')
-        
+
     def __str__(self):
         return f"{self.lawyer.user.get_full_name()} - {self.case.title} - {self.rating} stars"
 
@@ -154,9 +163,9 @@ class SuccessStory(models.Model):
     image = models.ImageField(upload_to='success_stories/', null=True, blank=True)
     is_public = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         verbose_name_plural = "Success Stories"
-        
+
     def __str__(self):
         return self.title
