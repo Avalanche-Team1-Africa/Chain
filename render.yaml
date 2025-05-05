@@ -2,8 +2,8 @@ services:
   - type: web
     name: HakiChain
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn HakiChain.wsgi:application
+    buildCommand: ./build.sh
+    startCommand:gunicorn HakiChain.wsgi:application
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: HakiChain.settings
