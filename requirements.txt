@@ -13,6 +13,7 @@ charset-normalizer==3.4.1
 click==8.1.8
 crispy-bootstrap5==2025.4
 cryptography==44.0.2
+dj-database-url==2.3.0
 Django==5.2
 django-channels==0.7.0
 django-crispy-forms==2.4
@@ -23,6 +24,7 @@ dnspython==2.7.0
 gitdb==4.0.12
 GitPython==3.1.44
 google-crc32c==1.7.1
+gunicorn==23.0.0
 idna==3.10
 ifaddr==0.2.0
 Jinja2==3.1.6
@@ -45,6 +47,7 @@ PyJWT==2.9.0
 pylibsrtp==0.12.0
 pyOpenSSL==25.0.0
 python-dateutil==2.9.0.post0
+python-decouple==3.8
 pytz==2025.2
 referencing==0.36.2
 requests==2.32.3
@@ -63,3 +66,4 @@ typing_extensions==4.13.2
 tzdata==2025.2
 urllib3==2.4.0
 watchdog==6.0.0
+whitenoise==6.9.0
