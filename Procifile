@@ -1,2 +1,3 @@
-gunicorn HakiChain.wsgi:application
+web: gunicorn HakiChain.wsgi:application
+
 
