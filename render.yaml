@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: HakiChain
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn HakiChain.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: HakiChain.settings
+      - key: SECRET_KEY
+        value: django-insecure-j-cv1pj5jgk#^6y=11^&=&wp@ahghf(%z9^pkvr2)t587ud3a7
+      - key: AFRICASTALKING_USERNAME
+        value: Kwepo
+      - key: AFRICASTALKING_API_KEY
+        value: atsk_7f5194c33e9526861e59210aec155ed76750877f07197d9520c7276fd73671bff71b66eb
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USE_TLS
+        value: true
+      - key: EMAIL_HOST_USER
+        value: hakichain@gmail.com
+      - key: EMAIL_HOST_PASSWORD
+        value: HakiChain2025
