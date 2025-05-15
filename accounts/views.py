@@ -1,8 +1,8 @@
 import random
 import string
 import africastalking
-from django.http import HttpResponseForbidden
-from django.shortcuts import render, redirect
+from django.http import Http404, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import login,logout
 from django.contrib import messages
 from django.views.generic import CreateView, UpdateView, DetailView
@@ -97,12 +97,20 @@ class ProfileSetupView(LoginRequiredMixin, UpdateView):
     
     def get_object(self):
         user = self.request.user
+        
+        # Check if profile exists or needs to be created
         if user.role == 'NGO':
-            return user.ngo_profile
+            profile, created = NGOProfile.objects.get_or_create(user=user)
+            return profile
         elif user.role == 'LAWYER':
-            return user.lawyer_profile
+            profile, created = LawyerProfile.objects.get_or_create(user=user)
+            return profile
         elif user.role == 'DONOR':
-            return user.donor_profile
+            profile, created = DonorProfile.objects.get_or_create(user=user)
+            return profile
+        else:
+            # Handle unexpected role
+            raise Http404("Profile type not found")
     
     def get_form_class(self):
         user = self.request.user
@@ -112,6 +120,9 @@ class ProfileSetupView(LoginRequiredMixin, UpdateView):
             return LawyerProfileForm
         elif user.role == 'DONOR':
             return DonorProfileForm
+        else:
+            # Handle unexpected role
+            raise Http404("Form not found for this user role")
     
     def get_success_url(self):
         user = self.request.user
@@ -124,10 +135,12 @@ class ProfileSetupView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('accounts:profile')  # Default fallback
     
     def form_valid(self, form):
+        # Save the profile
+        form.instance.user = self.request.user
+        response = super().form_valid(form)
         messages.success(self.request, 'Profile updated successfully!')
-        return super().form_valid(form)
+        return response
 
-# Add a profile view
 class ProfileView(LoginRequiredMixin, DetailView):
     template_name = 'accounts/profile.html'
     
@@ -137,20 +150,62 @@ class ProfileView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        
         if user.role == 'NGO':
-            context['profile'] = user.ngo_profile
+            context['profile'] = getattr(user, 'ngo_profile', None)
         elif user.role == 'LAWYER':
-            context['profile'] = user.lawyer_profile
+            context['profile'] = getattr(user, 'lawyer_profile', None)
         elif user.role == 'DONOR':
-            context['profile'] = user.donor_profile
+            context['profile'] = getattr(user, 'donor_profile', None)
+        
+        # If profile doesn't exist yet, redirect to profile setup
+        if not context['profile']:
+            return redirect('accounts:profile_setup')
+            
         return context
-    
+
 class NGOProfileView(LoginRequiredMixin, DetailView):
     model = NGOProfile
     template_name = 'accounts/ngo_profile.html'
     
     def get_object(self):
-        return self.request.user.ngo_profile
+        return getattr(self.request.user, 'ngo_profile', None)
+        
+    def dispatch(self, request, *args, **kwargs):
+        # Check if profile exists
+        if not self.get_object():
+            return redirect('accounts:profile_setup')
+        return super().dispatch(request, *args, **kwargs)
+
+class LawyerProfileView(LoginRequiredMixin, DetailView):
+    model = LawyerProfile
+    template_name = 'accounts/lawyer_profile.html'
+
+    def get_object(self):
+        # Get the LawyerProfile based on the passed user_id
+        user_id = self.kwargs.get('user_id')
+        if user_id:
+            return get_object_or_404(LawyerProfile, user__id=user_id)
+        return getattr(self.request.user, 'lawyer_profile', None)
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if profile exists
+        if not self.get_object():
+            return redirect('accounts:profile_setup')
+        return super().dispatch(request, *args, **kwargs)
+
+class DonorProfileView(LoginRequiredMixin, DetailView):
+    model = DonorProfile
+    template_name = 'accounts/donor_profile.html'
+    
+    def get_object(self):
+        return getattr(self.request.user, 'donor_profile', None)
+        
+    def dispatch(self, request, *args, **kwargs):
+        # Check if profile exists
+        if not self.get_object():
+            return redirect('accounts:profile_setup')
+        return super().dispatch(request, *args, **kwargs)
 @login_required
 def ngo_dashboard(request):
     """NGO dashboard showing case overview"""
