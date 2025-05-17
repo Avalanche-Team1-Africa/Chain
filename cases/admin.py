@@ -1,61 +1,88 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.utils.translation import gettext_lazy as _
+
 from .models import (
-    CaseCategory,
-    Case,
-    CaseDocument,
-    CaseUpdate,
-    CaseMilestone,
-    LawyerApplication,
+    Case, CaseMilestone, CaseEvent, CaseMessage,
+    CaseMessageAttachment, CaseDocument, DocumentTemplate,
 )
 
-# Optional: Customize the display of CaseCategory in the admin panel
-class CaseCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
-    search_fields = ('name',)
 
-# Optional: Customize the display of Case in the admin panel
+class CaseMilestoneInline(admin.TabularInline):
+    """Inline admin for CaseMilestone."""
+    model = CaseMilestone
+    extra = 0
+
+
+class CaseEventInline(admin.TabularInline):
+    """Inline admin for CaseEvent."""
+    model = CaseEvent
+    extra = 0
+
+
+class CaseDocumentInline(admin.TabularInline):
+    """Inline admin for CaseDocument."""
+    model = CaseDocument
+    extra = 0
+
+
+@admin.register(Case)
 class CaseAdmin(admin.ModelAdmin):
-    list_display = ('title', 'ngo', 'category', 'urgency', 'status', 'created_at')
-    list_filter = ('status', 'urgency', 'category', 'created_at')
+    """Admin for the Case model."""
+    # Removed 'reference_number' which isn't a field on Case model
+    list_display = ('id', 'title', 'ngo', 'assigned_lawyer', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('title', 'description')  # Removed 'reference_number'
+    inlines = [CaseMilestoneInline, CaseEventInline, CaseDocumentInline]
+    date_hierarchy = 'created_at'
+
+
+class CaseMessageAttachmentInline(admin.TabularInline):
+    """Inline admin for CaseMessageAttachment."""
+    model = CaseMessageAttachment
+    extra = 0
+
+
+@admin.register(CaseMessage)
+class CaseMessageAdmin(admin.ModelAdmin):
+    """Admin for the CaseMessage model."""
+    list_display = ('sender', 'case', 'timestamp')
+    list_filter = ('timestamp',)
+    search_fields = ('content',)
+    inlines = [CaseMessageAttachmentInline]
+    date_hierarchy = 'timestamp'
+
+
+@admin.register(CaseEvent)
+class CaseEventAdmin(admin.ModelAdmin):
+    """Admin for the CaseEvent model."""
+    list_display = ('title', 'case', 'event_type', 'start_time', 'end_time', 'created_by')
+    list_filter = ('event_type', 'start_time')
     search_fields = ('title', 'description')
-    readonly_fields = ('created_at', 'updated_at')
+    date_hierarchy = 'start_time'
 
-    # Optional: Add a method to display total donations directly in the admin
-    def total_donations(self, obj):
-        return obj.total_donations()
-    total_donations.short_description = 'Total Donations'
 
-    # Include the total_donations method in the list display
-    list_display += ('total_donations',)
-
-# Optional: Customize the display of CaseDocument in the admin panel
+@admin.register(CaseDocument)
 class CaseDocumentAdmin(admin.ModelAdmin):
-    list_display = ('title', 'case', 'uploaded_at')
-    list_filter = ('uploaded_at',)
-    search_fields = ('title', 'case__title')
+    """Admin for the CaseDocument model."""
+    # Removed 'document_type' and 'uploaded_by' which aren't fields on CaseDocument
+    list_display = ('name', 'case', 'uploaded_at')
+    list_filter = ('uploaded_at',)  # Removed 'document_type'
+    search_fields = ('name', 'notes')
+    date_hierarchy = 'uploaded_at'
 
-# Optional: Customize the display of CaseUpdate in the admin panel
-class CaseUpdateAdmin(admin.ModelAdmin):
-    list_display = ('case', 'created_by', 'created_at')
-    list_filter = ('created_at',)
-    search_fields = ('content', 'case__title')
 
-# Optional: Customize the display of CaseMilestone in the admin panel
-class CaseMilestoneAdmin(admin.ModelAdmin):
-    list_display = ('case', 'title', 'target_date', 'status')
-    list_filter = ('status', 'target_date')
-    search_fields = ('title', 'case__title')
+@admin.register(DocumentTemplate)
+class DocumentTemplateAdmin(admin.ModelAdmin):
+    """Admin for the DocumentTemplate model."""
+    list_display = ('name', 'available_to_ngo', 'available_to_lawyer', 'created_at')
+    list_filter = ('available_to_ngo', 'available_to_lawyer', 'created_at')
+    search_fields = ('name', 'description')
 
-# Optional: Customize the display of LawyerApplication in the admin panel
-class LawyerApplicationAdmin(admin.ModelAdmin):
-    list_display = ('lawyer', 'case', 'status', 'applied_at')
-    list_filter = ('status', 'applied_at')
-    search_fields = ('lawyer__user__get_full_name', 'case__title')
 
-# Register the models with their respective ModelAdmin classes (if customized)
-admin.site.register(CaseCategory, CaseCategoryAdmin)
-admin.site.register(Case, CaseAdmin)
-admin.site.register(CaseDocument, CaseDocumentAdmin)
-admin.site.register(CaseUpdate, CaseUpdateAdmin)
-admin.site.register(CaseMilestone, CaseMilestoneAdmin)
-admin.site.register(LawyerApplication, LawyerApplicationAdmin)
+    
+
+
+# Register remaining models if needed
+admin.site.register(CaseMilestone)
+admin.site.register(CaseMessageAttachment)
