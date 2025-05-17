@@ -1,95 +1,189 @@
 # HakiChain
 
+**HakiChain** is a Django-based legal support platform integrated with Ethereum smart contracts to bridge the gap between NGOs seeking legal assistance and lawyers offering their services either pro bono or for bounties.
 
-HakiChain is a Django-based platform designed to bridge the gap between NGOs seeking legal assistance and lawyers willing to offer their services pro bono or for bounties.
+The platform also features blockchain-based milestone tracking and payments using the custom `HakiToken` ERC20 token, fostering transparency and accountability in the delivery of legal aid.
 
-## Overview
+---
 
-This platform enables NGOs to post legal cases requiring assistance, while lawyers can browse these cases and apply to work on them. The system facilitates case management, lawyer applications, bounty funding, and success tracking through a comprehensive workflow.
+## 🚀 Overview
 
-## Key Features
+HakiChain empowers NGOs to post legal cases and receive assistance from lawyers. The platform supports:
 
-- **Case Management**: NGOs can post cases with detailed descriptions, urgency levels, locations, and deadlines
-- **Lawyer Matching**: Lawyers can browse open cases and apply with cover letters
-- **Application Process**: NGOs can shortlist, review, and select lawyers for their cases
-- **Milestone Tracking**: Cases can be broken down into milestones with target dates and status tracking
-- **Case Updates**: Ongoing case progress can be documented through periodic updates
-- **Document Management**: Legal documents can be uploaded and associated with specific cases
-- **Rating System**: NGOs can provide ratings and reviews for lawyers upon case completion
-- **Success Stories**: Notable case outcomes can be published as success stories
-- **Donation System**: Cases can receive bounty funding through donations
+* Case management
+* Lawyer applications and selection
+* Milestone-based tracking and updates
+* Bounty funding through donations
+* On-chain reward system using `HakiToken`
 
-## Models
+---
 
-### Core Models
+## 🛠 Key Features
 
-- **CaseCategory**: Classification system for different types of legal cases
-- **Case**: The central model tracking all aspects of a legal matter
-- **CaseDocument**: Legal files and documents pertaining to specific cases
-- **CaseUpdate**: Progress updates posted by involved parties
-- **CaseMilestone**: Key deliverables and objectives for case resolution
-- **LawyerApplication**: Applications from lawyers interested in cases
-- **LawyerRating**: Feedback and scores for lawyer performance
-- **SuccessStory**: Highlighted successful case outcomes
+### 🌍 Django-Based Platform
 
-### Case Status Flow
+* **Case Management**: NGOs can post legal cases with detailed info including urgency, location, and deadlines.
+* **Lawyer Matching**: Lawyers browse cases and apply with a personalized cover letter.
+* **Application Workflow**: NGOs can shortlist, review, and select lawyers.
+* **Milestone Tracking**: Divide cases into manageable milestones with due dates and status.
+* **Progress Updates**: Ongoing documentation of case progress by involved parties.
+* **Document Management**: Upload and associate legal documents with individual cases.
+* **Rating & Feedback**: NGOs rate lawyers after case completion.
+* **Success Stories**: Share outcomes of impactful cases.
+* **Donation System**: Users can donate HakiTokens to support legal cases.
 
-Cases progress through the following statuses:
-1. **Open**: Initial state when posted by an NGO
-2. **Assigned**: A lawyer has been selected and assigned
-3. **In Progress**: Active work is underway
-4. **Under Review**: Case outcome is being evaluated
-5. **Completed**: Legal work has been successfully finished
-6. **Closed**: Case has been finalized and archived
+### 🧾 Case Status Flow
 
-### Urgency Levels
+1. `Open`: Posted by NGO
+2. `Assigned`: Lawyer selected
+3. `In Progress`: Work ongoing
+4. `Under Review`: Outcome under evaluation
+5. `Completed`: Legal work finalized
+6. `Closed`: Case archived
 
-Cases can be marked with urgency levels:
-- Low
-- Medium
-- High
-- Critical
+### ⚠️ Urgency Levels
 
-## Getting Started
+* Low
+* Medium
+* High
+* Critical
 
-### Prerequisites
+---
 
-- Python 3.10+
-- Django
-- Database (PostgreSQL recommended)
+## 💰 Blockchain Integration (Hardhat + Solidity)
 
-### Installation
+HakiChain includes smart contracts deployed on the Ethereum blockchain for decentralized reward and milestone tracking.
 
-1. Clone the repository
-2. Create and activate a virtual environment
-3. Install dependencies: `pip install -r requirements.txt`
-4. Configure your database in settings.py
-5. Run migrations: `python manage.py migrate`
-6. Create a superuser: `python manage.py createsuperuser`
-7. Start the development server: `python manage.py runserver`
+### 🔐 HakiToken (ERC20)
 
-## Usage
+An ERC20 token used to reward lawyers for completing case milestones.
+
+* Symbol: `HAKI`
+* Total Supply Cap: `100 million`
+* Burnable & Mintable
+* Roles: `MINTER_ROLE`, `DEFAULT_ADMIN_ROLE`
+* Capped token minting to enforce accountability
+
+**Key Functions:**
+
+* `mint()`: Mint new tokens with role verification
+* `burn()`: Lawyers can burn tokens
+* `totalMinted()` / `remainingSupply()`: Track token economy
+
+### 💼 HakiEscrow
+
+Smart contract to manage milestone-based payments using `HakiToken`.
+
+**Roles:**
+
+* `NGO_ROLE`: Can create and fund cases
+* `VERIFIER_ROLE`: Confirms milestone completion
+
+**Key Features:**
+
+* Escrow-based case creation with assigned lawyers
+* Add milestones to cases with bounty amounts
+* Verify milestone completion
+* Release payments only upon verification
+* Immutable record of transactions and progress
+
+**Workflow:**
+
+1. NGO creates case on-chain
+2. Adds milestones and funds tokens
+3. Verifier confirms milestone completion
+4. Payment is released in HakiTokens
+
+---
+
+## 🧩 Core Django Models
+
+* `CaseCategory`: Types of legal issues
+* `Case`: Tracks legal matters
+* `CaseDocument`: Case-related uploads
+* `CaseUpdate`: Progress logs
+* `CaseMilestone`: Milestone breakdowns
+* `LawyerApplication`: Lawyer submissions
+* `LawyerRating`: NGO feedback on lawyers
+* `SuccessStory`: Published outcomes
+
+---
+
+## 🔧 Getting Started
+
+### ✅ Prerequisites
+
+* Python 3.10+
+* Django 4.x
+* PostgreSQL
+* Node.js + Hardhat (for smart contract deployment)
+
+### 🐍 Backend Setup
+
+```bash
+git clone https://github.com/yourusername/hakichain.git
+cd hakichain
+
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+
+# Update DB settings in hakichain/settings.py
+
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+### ⛓️ Blockchain Setup
+
+```bash
+cd blockchain
+npm install
+
+# Compile contracts
+npx hardhat compile
+
+# Run local Ethereum node
+npx hardhat node
+
+# Deploy contracts to local network
+npx hardhat run scripts/deploy.js --network localhost
+```
+
+---
+
+## 👥 Usage
 
 ### For NGOs
 
-1. Register an NGO account
-2. Create and post legal cases
-3. Review lawyer applications
-4. Track case progress
-5. Rate lawyers upon completion
+* Register & log in
+* Post legal cases
+* Review & select lawyer applications
+* Track milestones and updates
+* Rate lawyers and share success stories
+* Donate HakiTokens to reward efforts
 
 ### For Lawyers
 
-1. Register a lawyer account with relevant profile information
-2. Browse available cases
-3. Apply for cases with a cover letter
-4. Update case progress
-5. Build reputation through ratings and success stories
+* Register with your credentials
+* Apply for cases with a cover letter
+* Track assigned cases and milestones
+* Receive HakiTokens upon milestone completion
+* Build your legal portfolio with ratings and reviews
 
-## Contributing
+---
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## 👨‍💻 Contributing
 
-## License
+Contributions are welcome! Feel free to fork the repo and submit pull requests.
+
+---
+
+## 📜 License
 
 This project is licensed under the [MIT License](LICENSE).
+
+---
+
+
