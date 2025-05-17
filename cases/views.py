@@ -28,6 +28,7 @@ from django.db import transaction
 from .models import CaseNotification, TokenTransaction  
 # from ratelimit.decorators import ratelimit       
 import os
+import africastalking
 from accounts import models
 from .models import (
     Case,
@@ -1075,7 +1076,6 @@ def apply_for_case(request, pk):
 logger = logging.getLogger(__name__)
 
 
-# Add this function to handle SMS sending
 def send_sms_notification(phone_number, message):
     """
     Send SMS notification using Africa's Talking API
@@ -1085,8 +1085,14 @@ def send_sms_notification(phone_number, message):
         message (str): The message to send
     """
     try:
-        # Import the Africa's Talking module
-        import africastalking
+        # Ensure valid phone number format
+        if phone_number:
+            phone_number = phone_number.lstrip('0')
+            if not phone_number.startswith('+'):
+                phone_number = '+254' + phone_number  # Change to your country code
+        else:
+            logger.warning("No phone number provided")
+            return None
         
         # Set your app credentials
         username = settings.AFRICASTALKING_USERNAME
@@ -1097,11 +1103,7 @@ def send_sms_notification(phone_number, message):
         
         # Get the SMS service
         sms = africastalking.SMS
-        
-        # Make sure the phone number is in the correct format (e.g., +254XXXXXXXXX)
-        if not phone_number.startswith('+'):
-            phone_number = '+' + phone_number
-            
+
         # Send the message
         response = sms.send(message, [phone_number])
         
@@ -1113,7 +1115,6 @@ def send_sms_notification(phone_number, message):
         # Log any errors
         logger.error(f"Failed to send SMS: {str(e)}")
         
-        # Don't raise the exception as this shouldn't block the main functionality
         return None
     
 def lawyer_cases(request):
@@ -2523,7 +2524,6 @@ def notifications_list(request):
 
 
 
-@login_required
 @login_required
 @require_POST
 def mark_notification_read(request):
