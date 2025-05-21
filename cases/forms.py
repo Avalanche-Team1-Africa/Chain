@@ -2,6 +2,9 @@ from django import forms
 from .models import Case, CaseDocument, CaseUpdate, LawyerApplication, SuccessStory, CaseEvent, CaseMessage, DocumentTemplate
 from accounts.models import LawyerProfile
 from multiupload.fields import MultiFileField
+from django.core.validators import MinValueValidator
+import re
+
 
 
 class CaseForm(forms.ModelForm):
@@ -220,3 +223,76 @@ class DocumentTemplateForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }
+
+class TokenRedemptionForm(forms.Form):
+    tokens = forms.IntegerField(
+        label="Number of Tokens",
+        min_value=1,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter tokens to redeem'})
+    )
+    redemption_method = forms.ChoiceField(
+        label="Redemption Method",
+        choices=(('crypto', 'Cryptocurrency (HakiToken)'), ('mpesa', 'M-Pesa')),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    eth_address = forms.CharField(
+        label="Ethereum Address",
+        max_length=42,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0x...'})
+    )
+    phone_number = forms.CharField(
+        label="Phone Number",
+        max_length=15,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+2547xxxxxxxx'})
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        method = cleaned_data.get('redemption_method')
+        eth_address = cleaned_data.get('eth_address')
+        phone_number = cleaned_data.get('phone_number')
+
+        if method == 'crypto':
+            if not eth_address or not re.match(r'^0x[a-fA-F0-9]{40}$', eth_address):
+                self.add_error('eth_address', 'Please enter a valid Ethereum address.')
+        elif method == 'mpesa':
+            if not phone_number or not re.match(r'^\+254[0-9]{9}$', phone_number):
+                self.add_error('phone_number', 'Please enter a valid phone number (e.g., +2547xxxxxxxx).')
+
+        return cleaned_data
+    
+class WalletDepositForm(forms.Form):
+    amount = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        label="Amount to Deposit"
+    )
+    payment_method = forms.ChoiceField(
+        choices=(('ETH', 'Ethereum'), ('MPESA', 'M-Pesa')),
+        label="Payment Method"
+    )
+    eth_address = forms.CharField(
+        max_length=42,
+        required=False,
+        label="Ethereum Address (for ETH deposits)"
+    )
+    phone_number = forms.CharField(
+        max_length=15,
+        required=False,
+        label="Phone Number (for M-Pesa deposits)"
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        payment_method = cleaned_data.get('payment_method')
+        eth_address = cleaned_data.get('eth_address')
+        phone_number = cleaned_data.get('phone_number')
+
+        if payment_method == 'ETH' and not eth_address:
+            raise forms.ValidationError("Ethereum address is required for ETH deposits.")
+        if payment_method == 'MPESA' and not phone_number:
+            raise forms.ValidationError("Phone number is required for M-Pesa deposits.")
+        return cleaned_data
