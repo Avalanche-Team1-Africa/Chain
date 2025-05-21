@@ -255,6 +255,43 @@ def template_upload_path(instance, filename):
     return f"document_templates/{filename}"
 
 
+class WalletTransaction(models.Model):
+    TRANSACTION_TYPES = (
+        ('DEPOSIT', 'Deposit'),
+        ('WITHDRAW', 'Withdraw'),
+        ('EARN', 'Earn'),
+        ('SPEND', 'Spend'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    description = models.CharField(max_length=255)
+    payment_method = models.CharField(max_length=20, choices=(('ETH', 'Ethereum'), ('MPESA', 'M-Pesa')))  # Track payment method
+    external_tx_id = models.CharField(max_length=100, blank=True, null=True)  # For blockchain or Paystack tx ID
+    case = models.ForeignKey('Case', on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.transaction_type} of {self.amount} via {self.payment_method} for {self.user.username}"
+
+class ChatMessage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='case_chat_messages')
+    case = models.ForeignKey('Case', on_delete=models.SET_NULL, null=True, blank=True)
+    message = models.TextField()
+    response = models.TextField(null=True, blank=True)  # AI response
+    timestamp = models.DateTimeField(default=timezone.now)
+    is_user_message = models.BooleanField(default=True)  # True for user, False for AI
+
+    class Meta:
+        ordering = ['timestamp']
+
+    def __str__(self):
+        return f"{self.user.username}: {self.message} ({self.timestamp})"
+
+
+
+
 class DocumentTemplate(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
@@ -369,62 +406,87 @@ class SuccessStory(models.Model):
         return self.title
     
 class UserWallet(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wallet')
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='wallet',
+    )
+    balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+    )
+    eth_address = models.CharField(
+        max_length=42,
+        blank=True,
+        null=True,
+        help_text="Ethereum address for crypto redemptions (e.g., 0x...)",
+    )
+    phone_number = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        help_text="Phone number for M-Pesa redemptions (e.g., +2547xxxxxxxx)",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.username}'s Wallet: {self.balance} tokens"
 
+    class Meta:
+        verbose_name = "User Wallet"
+        verbose_name_plural = "User Wallets"
+
 
 class TokenTransaction(models.Model):
     TRANSACTION_TYPES = (
-        ('EARN', 'Earned'),
-        ('SPEND', 'Spent'),
-        ('ADJUST', 'Adjustment'),
+        ('earn', 'Earned'),
+        ('spend', 'Spent'),
+        ('adjust', 'Adjustment'),
     )
-    
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='token_transactions')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
-    description = models.CharField(max_length=255)
-    case = models.ForeignKey('Case', on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='token_transactions',
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+    )
+    transaction_type = models.CharField(
+        max_length=10,
+        choices=TRANSACTION_TYPES,
+    )
+    description = models.TextField()
+    case = models.ForeignKey(
+        'Case',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='token_transactions',
+    )
+    external_tx_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Blockchain or Paystack transaction ID",
+    )
+    created_at = models.DateTimeField(
+        default=timezone.now,
+    )
 
     def __str__(self):
         return f"{self.user.username} - {self.transaction_type} {self.amount} tokens: {self.description}"
-    TRANSACTION_TYPES = (
-        ('EARN', 'Earned'),
-        ('SPEND', 'Spent'),
-        ('ADJUST', 'Adjustment'),
-    )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='token_transactions')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
-    description = models.CharField(max_length=255)
-    case = models.ForeignKey('Case', on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
 
-    def __str__(self):
-        return f"{self.user.username} - {self.transaction_type} {self.amount} tokens: {self.description}"
-    TRANSACTION_TYPES = (
-        ('EARN', 'Earned'),
-        ('SPEND', 'Spent'),
-        ('ADJUST', 'Adjustment'),
-    )
-
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='token_transactions')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
-    description = models.CharField(max_length=255)
-    case = models.ForeignKey('Case', on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.transaction_type} {self.amount} tokens: {self.description}"
-    
-
+    class Meta:
+        verbose_name = "Token Transaction"
+        verbose_name_plural = "Token Transactions"
+        indexes = [
+            models.Index(fields=['user', 'created_at']),
+            models.Index(fields=['case']),
+        ]
 
 class CaseNotification(models.Model):
     recipient = models.ForeignKey(
