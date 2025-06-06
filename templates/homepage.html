@@ -1,931 +1,408 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HakiChain - Legal Tech Platform for Justice</title>
 
-{% block title %}Welcome to Haki{% endblock %}
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"  rel="stylesheet">
 
-{% block content %}
-    <style>
-        :root {
-            --ocean-blue: #0077b6;
-            --ocean-blue-light: #90e0ef;
-            --ocean-blue-dark: #023e8a;
-            --gold: #ffd700;
-            --gold-light: #ffebb7;
-            --gold-dark: #b7950b;
-        }
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
 
-        body {
-            font-family: 'Catamaran', sans-serif;
-            background-color: black;
-            color: #333;
-        }
+  <style>
+    :root {
+      --ocean-blue: #0077b6;
+      --ocean-blue-light: #90e0ef;
+      --ocean-blue-dark: #023e8a;
+      --gold: #ffd700;
+      --gold-dark: #b7950b;
+    }
 
-        .hero-section {
-            background: linear-gradient(135deg, var(--ocean-blue-dark), var(--ocean-blue));
-            color: white;
-            padding: 100px 0 70px;
-            position: relative;
-            overflow: hidden;
-            border-bottom: 4px solid var(--gold);
-        }
+    body {
+      font-family: 'Catamaran', sans-serif;
+      color: #333;
+      background-color: white;
+    }
 
-        .hero-section:before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("/api/placeholder/1200/800") center/cover no-repeat;
-            opacity: 0.2;
-            z-index: 0;
-        }
+    /* Navbar */
+    .navbar {
+      background-color: rgba(2, 62, 138, 0.95);
+    }
+    .navbar-brand {
+      font-weight: bold;
+      color: var(--gold) !important;
+    }
+    .nav-link, .btn-login, .btn-register {
+      color: white !important;
+    }
+    .btn-register {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      font-weight: bold;
+    }
 
-        .hero-content {
-            position: relative;
-            z-index: 1;
-        }
+    /* Hero Section */
+    .hero-section {
+      background: linear-gradient(135deg, var(--ocean-blue-dark), var(--ocean-blue));
+      color: white;
+      padding: 120px 0 90px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 4px solid var(--gold);
+    }
+    .hero-title {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    .pulse::after {
+      content: "";
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: var(--gold);
+      border-radius: 50%;
+      margin-left: 10px;
+      animation: pulse-dot 1s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .btn-custom {
+      background: linear-gradient(45deg, var(--gold-dark), var(--gold));
+      color: #333;
+      font-weight: bold;
+      border: none;
+      border-radius: 30px;
+      padding: 12px 30px;
+      transition: all 0.3s ease;
+    }
+    .btn-custom:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(183, 149, 11, 0.4);
+    }
 
-        .hero-title {
-            font-weight: 800;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
-        }
+    /* Features & How It Works */
+    .feature-icon {
+      font-size: 2.5rem;
+      color: var(--gold);
+      background: white;
+      padding: 15px;
+      border-radius: 50%;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .step-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+    }
+    .step-card:hover {
+      transform: translateY(-5px);
+    }
 
-        .hero-tagline {
-            font-weight: 400;
-            font-size: 1.5rem;
-            margin-bottom: 40px;
-        }
+    /* Testimonials */
+    .testimonial-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .testimonial-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--ocean-blue-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.8rem;
+      position: absolute;
+      top: -40px;
+      left: 30px;
+      border: 4px solid white;
+    }
 
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
+    /* Impact Counter */
+    .impact-counter {
+      background: linear-gradient(45deg, var(--ocean-blue-dark), var(--ocean-blue));
+      color: white;
+      padding: 60px 0;
+    }
 
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
-        }
+    /* Footer */
+    .footer {
+      background: linear-gradient(135deg, var(--ocean-blue-dark), var(--ocean-blue));
+      color: white;
+      padding: 40px 0;
+    }
+    .footer-links li a {
+      color: white;
+      text-decoration: none;
+    }
+    .social-links a {
+      color: white;
+      font-size: 1.3rem;
+      margin-right: 10px;
+      transition: color 0.3s ease;
+    }
+    .social-links a:hover {
+      color: var(--gold);
+    }
 
-        .card-header {
-            background: linear-gradient(45deg, var(--ocean-blue), var(--ocean-blue-light));
-            color: white;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
+    /* Scroll Animation */
+    .animate-on-scroll {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.6s ease;
+    }
+    .animate-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
 
-        .card-header:before {
-            content: "";
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            background: rgba(255,255,255,0.1);
-            top: -25%;
-            left: -25%;
-            transform: rotate(45deg);
-            z-index: -1;
-        }
+<body>
 
-        .icon-wrapper {
-            margin-bottom: 15px;
-            position: relative;
-            display: inline-block;
-        }
-
-        .feature-icon {
-            font-size: 2.5rem;
-            color: var(--gold);
-            padding: 15px;
-            background-color: white;
-            border-radius: 50%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .card-body {
-            padding: 100px;
-        }
-
-        .card-title {
-            color: var(--ocean-blue-dark);
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-
-        .card-text {
-            color: #666;
-            margin-bottom: 25px;
-            font-size: 1.05rem;
-        }
-
-        .btn-custom {
-            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
-            border: none;
-            color: #333;
-            font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .btn-custom:before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: all 0.6s ease;
-            z-index: -1;
-        }
-
-        .btn-custom:hover:before {
-            left: 100%;
-        }
-
-        .btn-custom:hover {
-            box-shadow: 0 5px 15px rgba(183, 149, 11, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .how-it-works {
-            padding: 80px 0;
-            background-color: #f8f9fa;
-        }
-
-        .section-title {
-            color: var(--ocean-blue-dark);
-            font-weight: 700;
-            margin-bottom: 40px;
-            position: relative;
-            display: inline-block;
-        }
-
-        .section-title:after {
-            content: "";
-            position: absolute;
-            width: 50%;
-            height: 4px;
-            background: var(--gold);
-            bottom: -10px;
-            left: 25%;
-        }
-
-        .step-card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            height: 100%;
-            position: relative;
-            z-index: 1;
-            overflow: hidden;
-            border-left: 4px solid var(--ocean-blue);
-        }
-
-        .step-card:before {
-            content: "";
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background: var(--gold-light);
-            border-radius: 50%;
-            top: -15px;
-            right: -15px;
-            z-index: -1;
-        }
-
-        .step-number {
-            display: inline-block;
-            width: 36px;
-            height: 36px;
-            background: var(--ocean-blue);
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 36px;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .step-title {
-            color: var(--ocean-blue-dark);
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .footer {
-            background: linear-gradient(135deg, var(--ocean-blue-dark), var(--ocean-blue));
-            color: white;
-            padding: 60px 0 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .footer:before {
-            content: "";
-            position: absolute;
-            width: 200%;
-            height: 50px;
-            background: var(--gold);
-            top: 0;
-            left: -50%;
-            transform: rotate(-1deg) translateY(-25px);
-        }
-
-        .footer-title {
-            font-weight: 700;
-            margin-bottom: 25px;
-            position: relative;
-            display: inline-block;
-        }
-
-        .footer-title:after {
-            content: "";
-            position: absolute;
-            width: 40px;
-            height: 3px;
-            background: var(--gold);
-            bottom: -10px;
-            left: 0;
-        }
-
-        .footer-links {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .footer-links li {
-            margin-bottom: 12px;
-        }
-
-        .footer-links a {
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: block;
-        }
-
-        .footer-links a:hover {
-            color: var(--gold);
-            transform: translateX(5px);
-        }
-
-        .footer-links i {
-            margin-right: 8px;
-            color: var(--gold);
-        }
-
-        .social-links {
-            margin-top: 20px;
-        }
-
-        .social-links a {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            text-align: center;
-            line-height: 40px;
-            color: white;
-            margin-right: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .social-links a:hover {
-            background: var(--gold);
-            color: var(--ocean-blue-dark);
-            transform: translateY(-3px);
-        }
-
-        .copyright {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.6);
-            font-size: 0.9rem;
-        }
-
-        .testimonial-section {
-            padding: 80px 0;
-            background-color: white;
-        }
-
-        .testimonial-card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            position: relative;
-            margin-top: 40px;
-        }
-
-        .testimonial-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            position: absolute;
-            top: -40px;
-            left: 30px;
-            border: 4px solid white;
-            background-color: var(--ocean-blue-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.8rem;
-        }
-
-        .testimonial-content {
-            margin-top: 20px;
-            font-style: italic;
-            color: #555;
-        }
-
-        .testimonial-author {
-            margin-top: 20px;
-            font-weight: 600;
-            color: var(--ocean-blue-dark);
-        }
-
-        .testimonial-role {
-            color: var(--gold-dark);
-            font-size: 0.9rem;
-        }
-
-        .impact-counter {
-            background: linear-gradient(45deg, var(--ocean-blue-dark), var(--ocean-blue));
-            padding: 60px 0;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .impact-counter:before {
-            content: "";
-            position: absolute;
-            width: 200%;
-            height: 100%;
-            background: rgba(255,255,255,0.05);
-            top: 0;
-            left: -50%;
-            transform: rotate(-10deg);
-            z-index: 0;
-        }
-
-        .counter-item {
-            text-align: center;
-            position: relative;
-            z-index: 1;
-        }
-
-        .counter-number {
-            font-size: 3.5rem;
-            font-weight: 800;
-            color: var(--gold);
-            margin-bottom: 10px;
-            line-height: 1;
-        }
-
-        .counter-text {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s, transform 0.8s;
-        }
-
-        .animate-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        /* Pulse animation for hero CTA */
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
-            }
-        }
-        
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        /* Floating animation for feature icons */
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-8px);
-            }
-            100% {
-                transform: translateY(0px);
-            }
-        }
-        
-        .float {
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        /* MetaMask Integration Styles */
-        .wallet-connect {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-        
-        .wallet-btn {
-            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
-            border: none;
-            color: #333;
-            font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 30px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .wallet-btn:hover {
-            box-shadow: 0 5px 15px rgba(183, 149, 11, 0.4);
-            transform: translateY(-2px);
-        }
-        
-        .wallet-status {
-            background: white;
-            padding: 10px 15px;
-            border-radius: 30px;
-            margin-top: 10px;
-            font-size: 0.8rem;
-            display: none;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .wallet-status.connected {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            background-color: #4CAF50;
-            border-radius: 50%;
-        }
-        
-        .wallet-address {
-            font-family: monospace;
-            font-size: 0.75rem;
-        }
-        
-        /* Metamask notification modal */
-        .modal-metamask {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-        
-        .modal-content {
-            background-color: white;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 500px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        
-        .modal-title {
-            color: var(--ocean-blue-dark);
-            margin-bottom: 15px;
-        }
-        
-        .modal-icon {
-            font-size: 3rem;
-            color: var(--gold);
-            margin-bottom: 20px;
-        }
-        
-        .modal-actions {
-            margin-top: 25px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-    </style>
-
-    <!-- MetaMask Connection Button -->
-    <div class="wallet-connect">
-        <button id="connectWallet" class="wallet-btn">
-            <i class="fas fa-wallet"></i> 
-        </button>
-        <div id="walletStatus" class="wallet-status">
-            <span class="status-dot"></span>
-            <span>Connected: <span id="walletAddress" class="wallet-address"></span></span>
-        </div>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="#">HakiChain</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav gap-3">
+        <li class="nav-item"><a class="nav-link" href="#learn-more">Why HakiChain</a></li>
+        <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
+        <li class="nav-item"><a class="nav-link" href="#testimonials">Testimonials</a></li>
+        <li class="nav-item"><a class="nav-link btn btn-login px-3 me-2" href="{% url 'accounts:login' %}">Login</a></li>
+        <li class="nav-item"><a class="nav-link btn btn-register px-3" href="{% url 'accounts:register' %}">Register</a></li>
+      </ul>
     </div>
-    
-    <!-- MetaMask Modal -->
-    <div id="metamaskModal" class="modal-metamask">
-        <div class="modal-content">
-            <div class="modal-icon">
-                <i class="fas fa-fox"></i>
-            </div>
-            <h3 class="modal-title">Connect with MetaMask</h3>
-            <p>Please connect your MetaMask wallet to use HakiChain's features.</p>
-            <div class="modal-actions">
-                <button id="closeModal" class="btn btn-secondary">Cancel</button>
-                <button id="installMetamask" class="btn btn-custom">Install MetaMask</button>
-            </div>
-        </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container hero-content text-center">
+    <h1 class="hero-title animate-on-scroll">Making Justice Accessible</h1>
+    <p class="hero-tagline animate-on-scroll mt-3 mb-4">
+      Connecting NGOs, lawyers, and donors to support legal tech cases on the blockchain
+    </p>
+    <a href="#learn-more" class="btn btn-custom pulse animate-on-scroll mt-2">
+      Learn More <i class="fas fa-arrow-right ms-2"></i>
+    </a>
+  </div>
+</section>
+
+<!-- Why HakiChain -->
+<section id="learn-more" class="py-5">
+  <div class="container">
+    <div class="row text-center mb-5">
+      <div class="col-12">
+        <h2 class="section-title animate-on-scroll">Why HakiChain?</h2>
+        <p class="text-muted">Empowering justice through innovation and transparency</p>
+      </div>
     </div>
-
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="container hero-content">
-            <div class="row justify-content-center text-center">
-                <div class="col-lg-8 animate__animated animate__fadeIn">
-                    <h1 class="hero-title animate__animated animate__fadeInUp">Making Justice Accessible</h1>
-                    <p class="hero-tagline animate__animated animate__fadeInUp animate__delay-1s">Connecting NGOs, lawyers, and donors to support legal tech cases on the blockchain</p>
-                    <a href="#learn-more" class="btn btn-custom btn-lg pulse animate__animated animate__fadeInUp animate__delay-2s">Learn More</a>
-                </div>
-            </div>
+    <div class="row g-4">
+      <div class="col-md-4 animate-on-scroll">
+        <div class="step-card text-center p-4">
+          <div class="mb-3 feature-icon"><i class="fas fa-file-contract"></i></div>
+          <h4>NGO Case Creation</h4>
+          <p>Submit detailed legal cases with bounties and milestones.</p>
         </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features-section py-5" id="learn-more">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 animate-on-scroll">
-                    <div class="card h-100">
-                        <div class="card-header text-center">
-                            <div class="icon-wrapper float">
-                                <i class="fas fa-balance-scale feature-icon"></i>
-                            </div>
-                        </div>
-                        <div class="card-body text-center">
-                            <h5 class="card-title">For NGOs</h5>
-                            <p class="card-text">List legal cases, set bounties, and find qualified lawyers to tackle important justice issues.</p>
-                            <a href="#" class="btn btn-custom register-btn">Register as NGO</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 animate-on-scroll">
-                    <div class="card h-100">
-                        <div class="card-header text-center">
-                            <div class="icon-wrapper float">
-                                <i class="fas fa-gavel feature-icon"></i>
-                            </div>
-                        </div>
-                        <div class="card-body text-center">
-                            <h5 class="card-title">For Lawyers</h5>
-                            <p class="card-text">Find cases that match your expertise, demonstrate impact, and earn bounties for your work.</p>
-                            <a href="#" class="btn btn-custom register-btn">Register as Lawyer</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 animate-on-scroll">
-                    <div class="card h-100">
-                        <div class="card-header text-center">
-                            <div class="icon-wrapper float">
-                                <i class="fas fa-hand-holding-heart feature-icon"></i>
-                            </div>
-                        </div>
-                        <div class="card-body text-center">
-                            <h5 class="card-title">For Donors</h5>
-                            <p class="card-text">Support important legal cases, track your impact, and help bring justice to those who need it most.</p>
-                            <a href="#" class="btn btn-custom register-btn">Register as Donor</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      </div>
+      <div class="col-md-4 animate-on-scroll">
+        <div class="step-card text-center p-4">
+          <div class="mb-3 feature-icon"><i class="fas fa-user-tie"></i></div>
+          <h4>Lawyer Applications</h4>
+          <p>Qualified professionals apply and work transparently on cases.</p>
         </div>
-    </section>
-
-    <!-- Impact Counter Section -->
-    <section class="impact-counter">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-md-4 animate-on-scroll">
-                    <div class="counter-item">
-                        <div class="counter-number">500+</div>
-                        <div class="counter-text">Cases Supported</div>
-                    </div>
-                </div>
-                <div class="col-md-4 animate-on-scroll">
-                    <div class="counter-item">
-                        <div class="counter-number">250+</div>
-                        <div class="counter-text">Legal Professionals</div>
-                    </div>
-                </div>
-                <div class="col-md-4 animate-on-scroll">
-                    <div class="counter-item">
-                        <div class="counter-number">$2M+</div>
-                        <div class="counter-text">Impact Generated</div>
-                    </div>
-                </div>
-            </div>
+      </div>
+      <div class="col-md-4 animate-on-scroll">
+        <div class="step-card text-center p-4">
+          <div class="mb-3 feature-icon"><i class="fas fa-coins"></i></div>
+          <h4>Donor Support</h4>
+          <p>Fund cases directly and track real-time progress and impact.</p>
         </div>
-    </section>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- How It Works Section -->
-    <section class="how-it-works">
-        <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-12">
-                    <h2 class="section-title animate-on-scroll">How It Works</h2>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4 mb-4 animate-on-scroll">
-                    <div class="step-card">
-                        <span class="step-number">1</span>
-                        <h4 class="step-title">NGOs List Cases</h4>
-                        <p>NGOs create detailed legal case listings with scope, impact potential, and bounty information on our secure platform.</p>
-                        <i class="fas fa-file-contract fa-2x mt-3" style="color: var(--ocean-blue-light);"></i>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4 animate-on-scroll">
-                    <div class="step-card">
-                        <span class="step-number">2</span>
-                        <h4 class="step-title">Lawyers Apply</h4>
-                        <p>Qualified legal professionals review case requirements, apply with their credentials, and propose solutions.</p>
-                        <i class="fas fa-user-tie fa-2x mt-3" style="color: var(--ocean-blue-light);"></i>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4 animate-on-scroll">
-                    <div class="step-card">
-                        <span class="step-number">3</span>
-                        <h4 class="step-title">Donors</h4>
-                        <p>Donors fund cases they care about, track progress, and see tangible impact from their contributions.</p>
-                        <i class="fas fa-coins fa-2x mt-3" style="color: var(--ocean-blue-light);"></i>
-                    </div>
-                </div>
-            </div>
+<!-- How It Works -->
+<section id="how-it-works" class="py-5 bg-light">
+  <div class="container">
+    <div class="row text-center mb-5">
+      <div class="col-12">
+        <h2 class="section-title animate-on-scroll">How It Works</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 mb-4 animate-on-scroll">
+        <div class="step-card p-4">
+          <span class="badge rounded-pill bg-primary">1</span>
+          <h4 class="mt-3">NGOs List Cases</h4>
+          <p>NGOs create detailed legal case listings with scope, impact potential, and bounty information on our secure platform.</p>
         </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="testimonial-section">
-        <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-12">
-                    <h2 class="section-title animate-on-scroll">Success Stories</h2>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-4 animate-on-scroll">
-                    <div class="testimonial-card">
-                        <div class="testimonial-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="testimonial-content">
-                            "HakiChain helped our organization find qualified legal support for a complex environmental justice case. The platform's transparency and efficiency made all the difference."
-                        </div>
-                        <div class="testimonial-author">Brandy Nabusu</div>
-                        <div class="testimonial-role">Environmental NGO Director</div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4 animate-on-scroll">
-                    <div class="testimonial-card">
-                        <div class="testimonial-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="testimonial-content">
-                            "As a human rights lawyer, HakiChain connects me with meaningful cases where I can make a real difference while being fairly compensated for my expertise."
-                        </div>
-                        <div class="testimonial-author">Graham Wairimu</div>
-                        <div class="testimonial-role">Human Rights Attorney</div>
-                    </div>
-                </div>
-            </div>
+      </div>
+      <div class="col-md-4 mb-4 animate-on-scroll">
+        <div class="step-card p-4">
+          <span class="badge rounded-pill bg-primary">2</span>
+          <h4 class="mt-3">Lawyers Apply</h4>
+          <p>Qualified legal professionals review case requirements, apply with their credentials, and propose solutions.</p>
         </div>
-    </section>
-
-    <!-- Call to Action -->
-    <section class="cta-section py-5" style="background-color: var(--ocean-blue-light);">
-        <div class="container text-center">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 animate-on-scroll">
-                    <h3 class="mb-4" style="color: var(--ocean-blue-dark);">Ready to Join the Justice Movement?</h3>
-                    <p class="mb-4">Be part of our growing community working to make legal support accessible to all.</p>
-                    <a href="#" class="btn btn-custom btn-lg pulse register-btn">Get Started Today</a>
-                </div>
-            </div>
+      </div>
+      <div class="col-md-4 mb-4 animate-on-scroll">
+        <div class="step-card p-4">
+          <span class="badge rounded-pill bg-primary">3</span>
+          <h4 class="mt-3">Donors Support</h4>
+          <p>Donors fund cases they care about, track progress, and see tangible impact from their contributions.</p>
         </div>
-    </section>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <h4 class="footer-title">HakiChain</h4>
-                    <p>Making justice accessible through technology, transparency, and collaboration.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                    </div>
-                </div>
-                <div class="col-md-2 mb-4">
-                    <h4 class="footer-title">Quick Links</h4>
-                    <ul class="footer-links">
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Home</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> About</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Cases</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Contact</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <h4 class="footer-title">For Users</h4>
-                    <ul class="footer-links">
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> NGO Registration</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Lawyer Portal</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Donor Dashboard</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Legal Resources</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <h4 class="footer-title">Contact Us</h4>
-                    <ul class="footer-links">
-                        <li><a href="#"><i class="fas fa-map-marker-alt"></i> 123 Justice Ave, City</a></li>
-                        <li><a href="#"><i class="fas fa-envelope"></i> info@hakichain.org</a></li>
-                        <li><a href="#"><i class="fas fa-phone"></i> +1 (555) 123-4567</a></li>
-                        <li><a href="#"><i class="fas fa-headset"></i> Support Center</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12 text-center copyright">
-                    <p>&copy; 2025 HakiChain. All rights reserved. Powered by blockchain technology.</p>
-                    <div class="mt-2">
-                        <a href="#" class="me-3" style="color: rgba(255,255,255,0.6); text-decoration: none;">Privacy Policy</a>
-                        <a href="#" class="me-3" style="color: rgba(255,255,255,0.6); text-decoration: none;">Terms of Service</a>
-                        <a href="#" style="color: rgba(255,255,255,0.6); text-decoration: none;">Cookie Policy</a>
-                    </div>
-                </div>
-            </div>
+<!-- Testimonials -->
+<section id="testimonials" class="py-5">
+  <div class="container">
+    <div class="row text-center mb-5">
+      <div class="col-12">
+        <h2 class="section-title animate-on-scroll">Success Stories</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 mb-4 animate-on-scroll">
+        <div class="testimonial-card p-4 position-relative">
+          <div class="testimonial-avatar"><i class="fas fa-user"></i></div>
+          <p>"HakiChain helped our organization find qualified legal support for a complex environmental justice case. The platform's transparency and efficiency made all the difference."</p>
+          <h6>— Maria N., Human Rights NGO</h6>
         </div>
-    </footer>
+      </div>
+      <div class="col-md-6 mb-4 animate-on-scroll">
+        <div class="testimonial-card p-4 position-relative">
+          <div class="testimonial-avatar"><i class="fas fa-user"></i></div>
+          <p>"As a lawyer, I can now take on impactful cases remotely and get rewarded fairly while making a real difference."</p>
+          <h6>— Brenda W., Environmental Lawyer</h6>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    
-    <!-- MetaMask Integration Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Element selectors
-            const connectWalletBtn = document.getElementById('connectWallet');
-            const walletStatus = document.getElementById('walletStatus');
-            const walletAddress = document.getElementById('walletAddress');
-            const metamaskModal = document.getElementById('metamaskModal');
-            const closeModalBtn = document.getElementById('closeModal');
-            const installMetamaskBtn = document.getElementById('installMetamask');
-            const registerButtons = document.querySelectorAll('.register-btn');
-        
-            // Check if MetaMask is installed
-            const isMetaMaskInstalled = () => typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
-        
-            // Format Ethereum address
-            const formatAddress = address => `${address.slice(0, 6)}...${address.slice(-4)}`;
-        
-            // Handle wallet connection
-            const connectWallet = async () => {
-                if (!isMetaMaskInstalled()) {
-                    metamaskModal.style.display = 'flex';
-                    return;
-                }
-        
-                try {
-                    connectWalletBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        
-                    if (accounts.length === 0) {
-                        throw new Error('No accounts found.');
-                    }
-        
-                    const account = accounts[0];
-                    walletAddress.textContent = formatAddress(account);
-                    walletStatus.classList.add('connected');
-                    connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connected';
-        
-                    listenToWalletEvents();
-        
-                } catch (err) {
-                    console.error('MetaMask connection error:', err.message);
-                    alert(`MetaMask Connection Failed: ${err.message}`);
-                    connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
-                }
-            };
-        
-            // Listen for account and network changes
-            const listenToWalletEvents = () => {
-                if (!window.ethereum._hasWalletListeners) {
-                    window.ethereum._hasWalletListeners = true;
-        
-                    window.ethereum.on('accountsChanged', accounts => {
-                        if (accounts.length === 0) {
-                            walletStatus.classList.remove('connected');
-                            walletAddress.textContent = '';
-                            connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
-                        } else {
-                            walletAddress.textContent = formatAddress(accounts[0]);
-                        }
-                    });
-        
-                    window.ethereum.on('chainChanged', () => {
-                        window.location.reload();
-                    });
-                }
-            };
-        
-            // Animate elements on scroll
-            const animateOnScroll = () => {
-                document.querySelectorAll('.animate-on-scroll').forEach(el => {
-                    const top = el.getBoundingClientRect().top;
-                    if (top < window.innerHeight - 50) {
-                        el.classList.add('visible');
-                    }
-                });
-            };
-        
-            // Event bindings
-            connectWalletBtn.addEventListener('click', connectWallet);
-            closeModalBtn.addEventListener('click', () => metamaskModal.style.display = 'none');
-            installMetamaskBtn.addEventListener('click', () => window.open('https://metamask.io/download.html', '_blank'));
-            window.addEventListener('click', e => e.target === metamaskModal && (metamaskModal.style.display = 'none'));
-            window.addEventListener('load', animateOnScroll);
-            window.addEventListener('scroll', animateOnScroll);
-        
-            // Register buttons
-            registerButtons.forEach(button => {
-                button.addEventListener('click', async e => {
-                    e.preventDefault();
-                    if (!walletStatus.classList.contains('connected')) {
-                        alert('Please connect your wallet to register.');
-                        await connectWallet();
-                        return;
-                    }
-        
-                    const label = button.textContent.toLowerCase();
-                    let userType = 'user';
-                    if (label.includes('ngo')) userType = 'ngo';
-                    else if (label.includes('lawyer')) userType = 'lawyer';
-                    else if (label.includes('donor')) userType = 'donor';
-        
-                    alert(`Redirecting to ${userType} registration...`);
-                    // window.location.href = `/register/${userType}`;
-                });
-            });
-        
-            // Auto-check if MetaMask is already connected
-            const autoConnect = async () => {
-                if (isMetaMaskInstalled()) {
-                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                    if (accounts.length > 0) {
-                        walletAddress.textContent = formatAddress(accounts[0]);
-                        walletStatus.classList.add('connected');
-                        connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connected';
-                        listenToWalletEvents();
-                    }
-                }
-            };
-        
-            autoConnect();
-        });
-        </script>
-        
-{% endblock %}
+<!-- Impact Counter -->
+<section class="impact-counter py-5 text-center">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-3 col-sm-6 animate-on-scroll">
+        <h2><span class="counter">1250</span>+</h2>
+        <p>Cases Supported</p>
+      </div>
+      <div class="col-md-3 col-sm-6 animate-on-scroll">
+        <h2><span class="counter">350</span>+</h2>
+        <p>Lawyers Connected</p>
+      </div>
+      <div class="col-md-3 col-sm-6 animate-on-scroll">
+        <h2>$<span class="counter">2.4</span>M+</h2>
+        <p>Donations Processed</p>
+      </div>
+      <div class="col-md-3 col-sm-6 animate-on-scroll">
+        <h2><span class="counter">100</span>%</h2>
+        <p>Transparency Guaranteed</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section py-5" style="background-color: var(--ocean-blue-light);">
+  <div class="container text-center">
+    <h3 class="mb-4" style="color: var(--ocean-blue-dark);">Ready to Join the Justice Movement?</h3>
+    <p class="mb-4">Be part of our growing community working to make legal support accessible to all.</p>
+    <a href="{% url 'accounts:register' %}" class="btn btn-custom btn-lg pulse">Get Started Today</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <h5>About HakiChain</h5>
+        <p>HakiChain is a decentralized platform empowering justice through blockchain technology, connecting NGOs, lawyers, and donors globally.</p>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>Quick Links</h5>
+        <ul class="footer-links list-unstyled">
+          <li><a href="#"><i class="fas fa-home me-2"></i>Home</a></li>
+          <li><a href="#"><i class="fas fa-info-circle me-2"></i>About</a></li>
+          <li><a href="#"><i class="fas fa-users me-2"></i>Our Team</a></li>
+          <li><a href="#"><i class="fas fa-shield-alt me-2"></i>Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>Follow Us</h5>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-linkedin"></i></a>
+          <a href="#"><i class="fab fa-github"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-4">
+      <div class="col-12 text-center">
+        <p>&copy; 2025 HakiChain. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> 
+
+<!-- Animations and Counters -->
+<script>
+  // Scroll Animation
+  const animateOnScroll = () => {
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+      if (el.getBoundingClientRect().top + window.scrollY < window.innerHeight + 100) {
+        el.classList.add('visible');
+      }
+    });
+  };
+  window.addEventListener('scroll', animateOnScroll);
+  window.addEventListener('load', animateOnScroll);
+
+  // Counter Animation
+  const counters = document.querySelectorAll('.counter');
+  counters.forEach(counter => {
+    const target = parseInt(counter.textContent.replace(/[^0-9]/g, ''), 10);
+    let count = 0;
+    const speed = Math.ceil(target / 100);
+
+    const updateCount = () => {
+      if (count < target) {
+        count += speed;
+        counter.textContent = count;
+        setTimeout(updateCount, 10);
+      } else {
+        counter.textContent = target;
+      }
+    };
+
+    updateCount();
+  });
+</script>
+
+</body>
+</html>
