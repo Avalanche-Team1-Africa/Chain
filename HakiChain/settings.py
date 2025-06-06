@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'rest_framework',
     'rest_framework_simplejwt',
     'accounts',
@@ -56,6 +57,8 @@ INSTALLED_APPS = [
     'channels',
     'crispy_forms',
     'crispy_bootstrap5',
+    'multiupload',
+    'notifications',
     
 ]
 
@@ -93,16 +96,30 @@ WSGI_APPLICATION = 'HakiChain.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'Chain',
         'USER': 'subchief',
-      'PASSWORD': 'Chain2025',
-       'HOST': 'localhost',
-       'PORT': '5432',
+        'PASSWORD': 'Chain2025',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
+
+
+
+
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 # DATABASES = {
 #     'default': dj_database_url.config(
@@ -147,11 +164,12 @@ USE_TZ = True
 
 # Channels settings
 ASGI_APPLICATION = 'HakiChain.asgi.application'
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-          'hosts': [('127.0.0.1', 6380)], 
+            'hosts': [('127.0.0.1', 6379)],
         },
     },
 }
@@ -179,6 +197,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+
+
 # Media files configuration
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -191,9 +211,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 LOGIN_REDIRECT_URL = 'accounts:dashboard'
 
-# Africa's Talking
-AFRICASTALKING_USERNAME = config('AFRICASTALKING_USERNAME')
-AFRICASTALKING_API_KEY = config('AFRICASTALKING_API_KEY')
+# # Africa's Talking
+# AFRICASTALKING_USERNAME = config('AFRICASTALKING_USERNAME')
+# AFRICASTALKING_API_KEY = config('AFRICASTALKING_API_KEY')
+
+
+AFRICASTALKING_USERNAME='Kwepo'
+AFRICASTALKING_API_KEY='atsk_aeb4e4fb0e6ea6ca6de0af7fc2e21f810c008c4f1a899b9611d9eae8871ce18413a23a5b'
 
 
 
@@ -201,7 +225,6 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 
-# For Gmail (example)
 # Email
 EMAIL_BACKEND = config('EMAIL_BACKEND')
 EMAIL_HOST = config('EMAIL_HOST')
@@ -210,3 +233,51 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
+
+
+
+
+
+PAYSTACK_SECRET_KEY = 'sk_live_054436278c8f761a4564228ad4ac60c39995024d'
+PAYSTACK_PUBLIC_KEY = 'pk_live_3ac85002a665048c363ad439bc409e06c03f97ae'  
+
+# URLs for Paystack endpoints are hardcoded in the views, but you can add them here as well
+PAYSTACK_API_URL = 'https://api.paystack.co'
+
+
+XAI_API_KEY=''
+
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'chatbot.log',
+        },
+    },
+    'loggers': {
+        'cases.consumers': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+
+
+# Ethereum
+ETHEREUM_NODE_URL = 'https://your-ethereum-node-url'  
+HAKI_TOKEN_ADDRESS = 'YOUR_HAKI_TOKEN_CONTRACT_ADDRESS'
+BACKEND_WALLET_ADDRESS = 'YOUR_BACKEND_WALLET_ADDRESS'
+BACKEND_PRIVATE_KEY = 'YOUR_BACKEND_PRIVATE_KEY'
