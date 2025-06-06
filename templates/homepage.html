@@ -4,13 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>HakiChain - Legal Tech Platform for Justice</title>
-
   <!-- Bootstrap CSS -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"  rel="stylesheet">
   <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
   <style>
     :root {
       --ocean-blue: #0077b6;
@@ -19,46 +16,38 @@
       --gold: #ffd700;
       --gold-dark: #b7950b;
     }
-
     * {
       box-sizing: border-box;
     }
-
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #333;
       background-color: white;
       overflow-x: hidden;
     }
-
     /* Navbar */
     .navbar {
       background-color: rgba(2, 62, 138, 0.95);
       backdrop-filter: blur(10px);
       transition: all 0.3s ease;
     }
-    
     .navbar.scrolled {
       background-color: rgba(2, 62, 138, 0.98);
       box-shadow: 0 2px 20px rgba(0,0,0,0.1);
     }
-    
     .navbar-brand {
       font-weight: bold;
       color: var(--gold) !important;
       font-size: 1.5rem;
     }
-    
     .nav-link {
       color: white !important;
       transition: color 0.3s ease;
       margin: 0 5px;
     }
-    
     .nav-link:hover {
       color: var(--gold) !important;
     }
-    
     .btn-login {
       background: transparent;
       border: 1px solid white;
@@ -67,12 +56,10 @@
       padding: 5px 15px;
       transition: all 0.3s ease;
     }
-    
     .btn-login:hover {
       background: white;
       color: var(--ocean-blue-dark) !important;
     }
-    
     .btn-register {
       background: var(--gold);
       color: #000 !important;
@@ -82,12 +69,10 @@
       padding: 5px 15px;
       transition: all 0.3s ease;
     }
-    
     .btn-register:hover {
       background: var(--gold-dark);
       transform: translateY(-2px);
     }
-
     /* Hero Section */
     .hero-section {
       background: linear-gradient(135deg, var(--ocean-blue-dark), var(--ocean-blue));
@@ -100,7 +85,6 @@
       display: flex;
       align-items: center;
     }
-    
     .hero-section::before {
       content: "";
       position: absolute;
@@ -111,29 +95,24 @@
       background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,215,0,0.1)"/><circle cx="80" cy="40" r="1" fill="rgba(255,215,0,0.1)"/><circle cx="40" cy="80" r="1.5" fill="rgba(255,215,0,0.1)"/></svg>');
       animation: float 20s infinite linear;
     }
-    
     @keyframes float {
       0% { transform: translateY(0px) rotate(0deg); }
       100% { transform: translateY(-100px) rotate(360deg); }
     }
-    
     .hero-title {
       font-size: 3.5rem;
       font-weight: bold;
       margin-bottom: 1rem;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
-    
     .hero-tagline {
       font-size: 1.3rem;
       opacity: 0.9;
       margin-bottom: 2rem;
     }
-    
     .pulse {
       position: relative;
     }
-    
     .pulse::after {
       content: "";
       display: inline-block;
@@ -144,12 +123,10 @@
       margin-left: 10px;
       animation: pulse-dot 1.5s infinite;
     }
-    
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.3; transform: scale(1.2); }
     }
-    
     .btn-custom {
       background: linear-gradient(45deg, var(--gold-dark), var(--gold));
       color: #333 !important;
@@ -163,13 +140,11 @@
       display: inline-flex;
       align-items: center;
     }
-    
     .btn-custom:hover {
       transform: translateY(-3px);
       box-shadow: 0 10px 25px rgba(183, 149, 11, 0.4);
       color: #000 !important;
     }
-
     /* Section Styling */
     .section-title {
       font-size: 2.5rem;
@@ -177,7 +152,6 @@
       color: var(--ocean-blue-dark);
       margin-bottom: 1rem;
     }
-
     /* Features */
     .feature-icon {
       font-size: 3rem;
@@ -194,7 +168,6 @@
       margin-bottom: 20px;
       transition: transform 0.3s ease;
     }
-    
     .step-card {
       background: white;
       border-radius: 15px;
@@ -204,16 +177,13 @@
       border: 1px solid rgba(0,119,182,0.1);
       height: 100%;
     }
-    
     .step-card:hover {
       transform: translateY(-10px);
       box-shadow: 0 15px 40px rgba(0,0,0,0.15);
     }
-    
     .step-card:hover .feature-icon {
       transform: rotate(10deg) scale(1.1);
     }
-
     /* How It Works */
     .badge {
       background: var(--ocean-blue) !important;
@@ -221,7 +191,6 @@
       padding: 10px 15px;
       margin-bottom: 15px;
     }
-
     /* Testimonials */
     .testimonial-card {
       background: white;
@@ -232,7 +201,6 @@
       margin-top: 40px;
       border-left: 4px solid var(--gold);
     }
-    
     .testimonial-avatar {
       width: 70px;
       height: 70px;
@@ -249,7 +217,6 @@
       border: 4px solid white;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-
     /* Impact Counter */
     .impact-counter {
       background: linear-gradient(135deg, var(--ocean-blue-dark), var(--ocean-blue));
@@ -257,7 +224,6 @@
       padding: 80px 0;
       position: relative;
     }
-    
     .impact-counter::before {
       content: "";
       position: absolute;
@@ -267,45 +233,37 @@
       bottom: 0;
       background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="0,100 100,0 100,100" fill="rgba(255,215,0,0.1)"/></svg>');
     }
-    
     .counter-number {
       font-size: 3rem;
       font-weight: bold;
       color: var(--gold);
     }
-
     /* CTA Section */
     .cta-section {
       background: linear-gradient(135deg, var(--ocean-blue-light), rgba(144, 224, 239, 0.7));
       padding: 80px 0;
     }
-
     /* Footer */
     .footer {
       background: linear-gradient(135deg, var(--ocean-blue-dark), var(--ocean-blue));
       color: white;
       padding: 50px 0 20px;
     }
-    
     .footer-links {
       list-style: none;
       padding: 0;
     }
-    
     .footer-links li {
       margin-bottom: 10px;
     }
-    
     .footer-links li a {
       color: rgba(255,255,255,0.8);
       text-decoration: none;
       transition: color 0.3s ease;
     }
-    
     .footer-links li a:hover {
       color: var(--gold);
     }
-    
     .social-links a {
       color: white;
       font-size: 1.5rem;
@@ -313,52 +271,43 @@
       transition: all 0.3s ease;
       display: inline-block;
     }
-    
     .social-links a:hover {
       color: var(--gold);
       transform: translateY(-3px);
     }
-
     /* Scroll Animation */
     .animate-on-scroll {
       opacity: 0;
       transform: translateY(50px);
       transition: all 0.8s ease;
     }
-    
     .animate-on-scroll.visible {
       opacity: 1;
       transform: translateY(0);
     }
-
     /* Mobile Responsiveness */
     @media (max-width: 768px) {
       .hero-title {
         font-size: 2.5rem;
       }
-      
       .hero-tagline {
         font-size: 1.1rem;
       }
-      
       .section-title {
         font-size: 2rem;
       }
-      
       .counter-number {
         font-size: 2rem;
       }
     }
-
     /* Smooth scrolling */
     html {
       scroll-behavior: smooth;
     }
   </style>
 </head>
-
 <body>
-
+<!-- Navbar -->
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
   <div class="container">
@@ -373,8 +322,13 @@
         <li class="nav-item"><a class="nav-link" href="#learn-more">Why HakiChain</a></li>
         <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
         <li class="nav-item"><a class="nav-link" href="#testimonials">Testimonials</a></li>
-        <li class="nav-item"><a class="nav-link btn btn-login" href="#" onclick="showAlert('Login')">Login</a></li>
-        <li class="nav-item"><a class="nav-link btn btn-register" href="#" onclick="showAlert('Register')">Register</a></li>
+        <!-- Updated Django Login & Register Links -->
+        <li class="nav-item">
+          <a class="nav-link btn btn-login" href="{% url 'accounts:login' %}">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-register" href="{% url 'accounts:register' %}">Register</a>
+        </li>
       </ul>
     </div>
   </div>
@@ -582,8 +536,7 @@
 </footer>
 
 <!-- Bootstrap JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script> 
 <script>
 // Navbar scroll effect
 window.addEventListener('scroll', function() {
@@ -594,32 +547,26 @@ window.addEventListener('scroll', function() {
     navbar.classList.remove('scrolled');
   }
 });
-
 // Scroll animation
 function animateOnScroll() {
   const elements = document.querySelectorAll('.animate-on-scroll');
   elements.forEach(element => {
     const elementTop = element.getBoundingClientRect().top;
     const elementVisible = 150;
-    
     if (elementTop < window.innerHeight - elementVisible) {
       element.classList.add('visible');
     }
   });
 }
-
 window.addEventListener('scroll', animateOnScroll);
 window.addEventListener('load', animateOnScroll);
-
 // Counter animation
 function animateCounters() {
   const counters = document.querySelectorAll('.counter-number');
-  
   counters.forEach(counter => {
     const target = parseInt(counter.getAttribute('data-target'));
     const increment = target / 100;
     let current = 0;
-    
     const timer = setInterval(() => {
       current += increment;
       if (current >= target) {
@@ -631,7 +578,6 @@ function animateCounters() {
     }, 20);
   });
 }
-
 function formatNumber(num) {
   if (num >= 1000000) {
     return '$' + (num / 1000000).toFixed(1) + 'M';
@@ -642,15 +588,12 @@ function formatNumber(num) {
   }
   return num.toString();
 }
-
 // Trigger counter animation when impact section is visible
 const impactSection = document.querySelector('.impact-counter');
 let hasAnimated = false;
-
 const observerOptions = {
   threshold: 0.5
 };
-
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting && !hasAnimated) {
@@ -659,9 +602,7 @@ const observer = new IntersectionObserver((entries) => {
     }
   });
 }, observerOptions);
-
 observer.observe(impactSection);
-
 // Smooth scroll to top
 function scrollToTop() {
   window.scrollTo({
@@ -669,17 +610,6 @@ function scrollToTop() {
     behavior: 'smooth'
   });
 }
-
-// Alert function for demo purposes
-function showAlert(action) {
-  alert(`${action} functionality would be implemented here. This is a demo page.`);
-}
-
-// Initialize animations on page load
-document.addEventListener('DOMContentLoaded', function() {
-  animateOnScroll();
-});
 </script>
-
 </body>
 </html>
