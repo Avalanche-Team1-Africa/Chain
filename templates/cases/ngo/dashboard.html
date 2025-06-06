@@ -1,409 +1,566 @@
-<div class="sidebar" style="
-    width: 250px;
-    background-color: #2c3e50;
-    color: #ecf0f1;
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    overflow-y: auto;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-">
-    <!-- Logo and Brand -->
-    <div style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <h3 style="margin: 0; font-weight: 700;">HakiChain</h3>
-        <small style="opacity: 0.7;">NGO Dashboard</small>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NGO Dashboard - Impact Management Portal</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.6s ease-out',
+                        'bounce-soft': 'bounceSoft 2s infinite',
+                        'pulse-glow': 'pulseGlow 2s ease-in-out infinite alternate'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounceSoft {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        @keyframes pulseGlow {
+            from { box-shadow: 0 0 20px rgba(14, 165, 233, 0.3); }
+            to { box-shadow: 0 0 30px rgba(14, 165, 233, 0.6); }
+        }
+        
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hover-scale {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+        
+        .sidebar-blur {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .nav-item:hover::before {
+            left: 100%;
+        }
+        
+        .stat-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 min-h-screen">
+    <!-- Background Elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-4 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
+        <div class="absolute -bottom-8 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse animation-delay-2000"></div>
+        <div class="absolute top-1/2 left-1/3 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse animation-delay-4000"></div>
     </div>
-    
-    <!-- User Profile Summary -->
-    <div style="padding: 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #3498db; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-            <i class="fa fa-user" style="font-size: 24px;"></i>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 sidebar-blur transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div class="flex flex-col h-full">
+            <!-- Logo Section -->
+            <div class="flex items-center justify-center p-6 border-b border-gray-200/20">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl animate-pulse-glow">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">NGO Portal</h1>
+                        <p class="text-xs text-gray-600">Impact Management</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <a href="/ngo/dashboard/" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-blue-50 hover:text-blue-700 group">
+                    <i class="fas fa-chart-line w-5 h-5 mr-3 group-hover:scale-110 transition-transform"></i>
+                    Dashboard
+                </a>
+                
+                <div class="pt-4">
+                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Case Management</h3>
+                    <a href="{% url 'cases:list_cases' %}" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-blue-50 hover:text-blue-700 group">
+                        <i class="fas fa-folder-open w-5 h-5 mr-3 group-hover:scale-110 transition-transform"></i>
+                        All Cases
+                    </a>
+                    <a href="{% url 'cases:case_create' %}" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-blue-50 hover:text-blue-700 group">
+                        <i class="fas fa-plus-circle w-5 h-5 mr-3 group-hover:scale-110 transition-transform"></i>
+                        Create Case
+                    </a>
+                </div>
+
+                <div class="pt-4">
+                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Financial</h3>
+                    <a href="{% url 'cases:deposit_funds' %}" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-blue-50 hover:text-blue-700 group">
+                        <i class="fas fa-wallet w-5 h-5 mr-3 group-hover:scale-110 transition-transform"></i>
+                        Deposit Funds
+                    </a>
+                    <a href="{% url 'cases:verify_payment' %}" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-blue-50 hover:text-blue-700 group">
+                        <i class="fas fa-check-double w-5 h-5 mr-3 group-hover:scale-110 transition-transform"></i>
+                        Verify Payment
+                    </a>
+                    <a href="{% url 'cases:check_transaction_status' %}"class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-blue-50 hover:text-blue-700 group">
+                        <i class="fas fa-search-dollar w-5 h-5 mr-3 group-hover:scale-110 transition-transform"></i>
+                        Transaction Status
+                    </a>
+                </div>
+
+                <div class="pt-4">
+                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Account</h3>
+                    <a href="#profile" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-blue-50 hover:text-blue-700 group">
+                        <i class="fas fa-user w-5 h-5 mr-3 group-hover:scale-110 transition-transform"></i>
+                        Profile
+                    </a>
+                    <a href="#settings" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-blue-50 hover:text-blue-700 group">
+                        <i class="fas fa-cog w-5 h-5 mr-3 group-hover:scale-110 transition-transform"></i>
+                        Settings
+                    </a>
+                    <a href="#logout" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 group">
+                        <i class="fas fa-sign-out-alt w-5 h-5 mr-3 group-hover:scale-110 transition-transform"></i>
+                        Logout
+                    </a>
+                </div>
+            </nav>
         </div>
-        <h5 style="margin: 10px 0 5px;">{{ request.user.get_full_name }}</h5>
-        <span style="font-size: 0.8rem; opacity: 0.7;">{{ request.user.email }}</span>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="lg:ml-72 min-h-screen">
+        <!-- Top Navigation -->
+        <header class="glass-morphism sticky top-0 z-40">
+            <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center">
+                    <button id="sidebar-toggle" class="lg:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-colors">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div class="ml-4 lg:ml-0">
+                        <h2 class="text-2xl font-bold text-white">Dashboard Overview</h2>
+                        <p class="text-blue-100 text-sm">Monitor your NGO's impact and operations</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 rounded-lg text-white hover:bg-white/10 transition-colors relative">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                    </button>
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                        U
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <main class="p-6 space-y-8">
+            <!-- Welcome Section -->
+            <div class="text-center space-y-4 animate-fade-in">
+                <div class="inline-flex items-center space-x-3 px-6 py-3 glass-morphism rounded-full text-white">
+                    <i class="fas fa-chart-line text-2xl animate-bounce-soft"></i>
+                    <span class="text-xl font-semibold">Welcome to Your Impact Dashboard</span>
+                </div>
+                <p class="text-blue-100 max-w-2xl mx-auto">Track your cases, monitor donations, and measure the real-world impact of your organization's work.</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up">
+                <!-- Total Cases Card -->
+                <div class="stat-card rounded-2xl p-6 hover-scale">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white shadow-lg">
+                            <i class="fas fa-folder-open text-xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-bold text-gray-800" id="totalCases">{{ case_stats.total_cases }}</div>
+                            <div class="text-sm text-gray-600">Total Cases</div>
+                        </div>
+                    </div>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Open:</span>
+                            <span class="font-semibold text-red-600">{{ case_stats.open_cases }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">In Progress:</span>
+                            <span class="font-semibold text-yellow-600">{{ case_stats.in_progress_cases }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Completed:</span>
+                            <span class="font-semibold text-green-600">{{ case_stats.completed_cases }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Donations Card -->
+                <div class="stat-card rounded-2xl p-6 hover-scale">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl text-white shadow-lg">
+                            <i class="fas fa-dollar-sign text-xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-bold text-gray-800" id="totalDonations">Ksh.{{ case_stats.total_donations|floatformat:0 }}</div>
+                            <div class="text-sm text-gray-600">Total Donations</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        Average per case: <span class="font-semibold">Ksh.{{ case_stats.avg_donations_per_case|floatformat:0 }}</span>
+                    </div>
+                </div>
+
+                <!-- Success Rate Card -->
+                <div class="stat-card rounded-2xl p-6 hover-scale">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl text-white shadow-lg">
+                            <i class="fas fa-check-circle text-xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-bold text-gray-800" id="successRate">{{ case_stats.success_rate|floatformat:1 }}%</div>
+                            <div class="text-sm text-gray-600">Success Rate</div>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-1000" style="width: {{ case_stats.success_rate }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Average Completion Time Card -->
+                <div class="stat-card rounded-2xl p-6 hover-scale">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl text-white shadow-lg">
+                            <i class="fas fa-clock text-xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-bold text-gray-800" id="avgTime">
+                                {% if case_stats.avg_completion_time %}
+                                    {{ case_stats.avg_completion_time.days }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div class="text-sm text-gray-600">Avg Days</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        Based on completed cases
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <!-- Category Distribution Chart -->
+                <div class="stat-card rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">Case Categories</h3>
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <i class="fas fa-chart-pie text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Monthly Trend Chart -->
+                <div class="stat-card rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">Monthly Trends</h3>
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <i class="fas fa-chart-line text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Cases Section -->
+            <div class="stat-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Recent Cases</h3>
+                    <a href="/ngo/cases/" class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center">
+                        View All <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <div class="space-y-4">
+                    {% for case in recent_cases %}
+                    <div class="p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all duration-300 group">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                                    <a href="{% url 'cases:case_detail' case.pk %}">{{ case.title }}</a>
+                                </h4>
+                                <p class="text-sm text-gray-600 mt-1">{{ case.description|truncatewords:15 }}</p>
+                                <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                                    <span><i class="fas fa-calendar mr-1"></i>{{ case.created_at|date:"M d, Y" }}</span>
+                                    {% if case.category %}
+                                    <span><i class="fas fa-tag mr-1"></i>{{ case.category.name }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                                    {% if case.status == 'open' %}
+                                        bg-red-100 text-red-800
+                                    {% elif case.status == 'in_progress' %}
+                                        bg-yellow-100 text-yellow-800
+                                    {% elif case.status == 'completed' %}
+                                        bg-green-100 text-green-800
+                                    {% endif %}
+                                ">
+                                    {{ case.get_status_display|default:case.status }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-inbox text-2xl text-gray-400"></i>
+                        </div>
+                        <h4 class="text-lg font-medium text-gray-600 mb-2">No Recent Cases</h4>
+                        <p class="text-gray-500 mb-4">Start making an impact by creating your first case</p>
+                        <a href="{% url 'cases:case_create' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Create New Case
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="{% url 'cases:case_create' %}" class="group p-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover-scale">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-plus text-2xl group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <div class="font-semibold">New Case</div>
+                            <div class="text-sm opacity-90">Create case</div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="{% url 'cases:deposit_funds' %}"  class="group p-6 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white hover:from-green-600 hover:to-green-700 transition-all duration-300 hover-scale">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-wallet text-2xl group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <div class="font-semibold">Deposit</div>
+                            <div class="text-sm opacity-90">Add funds</div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="/ngo/verify-payment/" class="group p-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover-scale">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-check-double text-2xl group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <div class="font-semibold">Verify</div>
+                            <div class="text-sm opacity-90">Check payment</div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="/ngo/check-transaction-status/" class="group p-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl text-white hover:from-orange-600 hover:to-orange-700 transition-all duration-300 hover-scale">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-search-dollar text-2xl group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <div class="font-semibold">Track</div>
+                            <div class="text-sm opacity-90">Transaction status</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </main>
     </div>
-    
-    <!-- Navigation Links -->
-    <ul style="list-style: none; padding: 0; margin: 0;">
-        <!-- Dashboard Home -->
-        <li>
-            <a href="{% url 'cases:ngo_dashboard' %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'ngo_dashboard' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-tachometer-alt" style="width: 20px; margin-right: 10px;"></i>
-                <span>Dashboard</span>
-            </a>
-        </li>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden"></div>
+
+    <script>
+        // Sample data for charts (replace with your Django template data)
+        const categoryData = [
+            {% for category in category_data %}
+            { name: '{{ category.category__name|default:"Uncategorized" }}', count: {{ category.count }} }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
         
-        <!-- Case Management Section -->
-        <li style="margin-top: 10px;">
-            <div style="padding: 10px 20px 5px; font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
-                Case Management
-            </div>
-        </li>
-        
-        <!-- List Cases -->
-        <li>
-            <a href="{% url 'cases:list_cases' %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'list_cases' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-folder" style="width: 20px; margin-right: 10px;"></i>
-                <span>My Cases</span>
-            </a>
-        </li>
-        
-        <!-- Create Case -->
-        <li>
-            <a href="{% url 'cases:case_create' %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'case_create' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-plus-circle" style="width: 20px; margin-right: 10px;"></i>
-                <span>Create Case</span>
-            </a>
-        </li>
-        
-        <!-- Case Details (if applicable) -->
-        {% if case %}
-        <li>
-            <a href="{% url 'cases:case_detail' pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'case_detail' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-info-circle" style="width: 20px; margin-right: 10px;"></i>
-                <span>Case Details</span>
-            </a>
-        </li>
-        
-        <!-- Case History (if applicable) -->
-        <li>
-            <a href="{% url 'cases:case_history' pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'case_history' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-history" style="width: 20px; margin-right: 10px;"></i>
-                <span>Case History</span>
-            </a>
-        </li>
-        
-        <!-- Case Updates (if applicable) -->
-        <li>
-            <a href="{% url 'cases:case_updates' pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'case_updates' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-bell" style="width: 20px; margin-right: 10px;"></i>
-                <span>Case Updates</span>
-            </a>
-        </li>
-        {% endif %}
-        
-        <!-- Lawyer Section -->
-        <li style="margin-top: 10px;">
-            <div style="padding: 10px 20px 5px; font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
-                Lawyer Management
-            </div>
-        </li>
-        
-        <!-- Applications (conditional if case is selected) -->
-        {% if case %}
-        <li>
-            <a href="{% url 'cases:view_applications' case_pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'view_applications' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-user-check" style="width: 20px; margin-right: 10px;"></i>
-                <span>View Applications</span>
-            </a>
-        </li>
-        
-        <!-- Invite Lawyers -->
-        <li>
-            <a href="{% url 'cases:invite_lawyers' case_pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'invite_lawyers' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-user-plus" style="width: 20px; margin-right: 10px;"></i>
-                <span>Invite Lawyers</span>
-            </a>
-        </li>
-        
-        <!-- Rate Lawyer -->
-        <li>
-            <a href="{% url 'cases:rate_lawyer' case_pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'rate_lawyer' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-star" style="width: 20px; margin-right: 10px;"></i>
-                <span>Rate Lawyer</span>
-            </a>
-        </li>
-        {% endif %}
-        
-        <!-- Case Progress Section -->
-        <li style="margin-top: 10px;">
-            <div style="padding: 10px 20px 5px; font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
-                Case Progress
-            </div>
-        </li>
-        
-        <!-- Set Milestones (if case is selected) -->
-        {% if case %}
-        <li>
-            <a href="{% url 'cases:set_milestones' case_pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'set_milestones' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-flag" style="width: 20px; margin-right: 10px;"></i>
-                <span>Set Milestones</span>
-            </a>
-        </li>
-        
-        <!-- Add Update -->
-        <li>
-            <a href="{% url 'cases:add_update' case_pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'add_update' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-comment-medical" style="width: 20px; margin-right: 10px;"></i>
-                <span>Add Update</span>
-            </a>
-        </li>
-        
-        <!-- Upload Document -->
-        <li>
-            <a href="{% url 'cases:upload_document' case_pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'upload_document' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-file-upload" style="width: 20px; margin-right: 10px;"></i>
-                <span>Upload Document</span>
-            </a>
-        </li>
-        {% endif %}
-        
-        <!-- Financial Section -->
-        <li style="margin-top: 10px;">
-            <div style="padding: 10px 20px 5px; font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
-                Financial
-            </div>
-        </li>
-        
-        <!-- Funding History (if case is selected) -->
-        {% if case %}
-        <li>
-            <a href="{% url 'cases:funding_history' pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'funding_history' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-money-bill-wave" style="width: 20px; margin-right: 10px;"></i>
-                <span>Funding History</span>
-            </a>
-        </li>
-        
-        <!-- View Donations -->
-        <li>
-            <a href="{% url 'cases:view_donations' case_pk=case.pk %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'view_donations' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-hand-holding-usd" style="width: 20px; margin-right: 10px;"></i>
-                <span>View Donations</span>
-            </a>
-        </li>
-        {% endif %}
-        
-        <!-- Profile & Settings -->
-        <li style="margin-top: 10px;">
-            <div style="padding: 10px 20px 5px; font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
-                Account
-            </div>
-        </li>
-        
-        <!-- Profile -->
-        <li>
-            <a href="{% url 'accounts:ngo_profile' %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'ngo_profile' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-id-card" style="width: 20px; margin-right: 10px;"></i>
-                <span>Profile</span>
-            </a>
-        </li>
-        
-        <!-- Settings -->
-        <li>
-            <a href="{% url 'accounts:settings' %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #ecf0f1;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-                {% if request.resolver_match.url_name == 'settings' %}
-                    background-color: rgba(255,255,255,0.1);
-                    border-left-color: #3498db;
-                {% endif %}
-            ">
-                <i class="fa fa-cog" style="width: 20px; margin-right: 10px;"></i>
-                <span>Settings</span>
-            </a>
-        </li>
-        
-        <!-- Log Out -->
-        <li style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
-            <a href="{% url 'accounts:logout' %}" style="
-                display: flex;
-                align-items: center;
-                padding: 12px 20px;
-                color: #e74c3c;
-                text-decoration: none;
-                transition: all 0.2s;
-                border-left: 3px solid transparent;
-            ">
-                <i class="fa fa-sign-out-alt" style="width: 20px; margin-right: 10px;"></i>
-                <span>Log Out</span>
-            </a>
-        </li>
-    </ul>
-</div>
+        const monthlyTrend = [
+            {% for trend in monthly_trend %}
+            {
+                month: '{{ trend.month|date:"M Y" }}',
+                count: {{ trend.count }},
+                monthShort: '{{ trend.month|date:"M" }}'
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        // Initialize Charts
+        function initCharts() {
+            // Category Distribution Chart
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryData.map(item => item.name),
+                    datasets: [{
+                        data: categoryData.map(item => item.count),
+                        backgroundColor: [
+                            '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
+                            '#8B5CF6', '#06B6D4', '#F97316', '#84CC16'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percent = Math.round((context.parsed / total) * 100);
+                                    return `${context.label}: ${context.parsed} (${percent}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Monthly Trend Chart
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: monthlyTrend.map(t => t.monthShort),
+                    datasets: [{
+                        label: 'Cases Created',
+                        data: monthlyTrend.map(t => t.count),
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3B82F6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { stepSize: 1 }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#3B82F6',
+                            borderWidth: 1
+                        }
+                    }
+                }
+            });
+        }
+
+        // Animate numbers
+        function animateValue(element, start, end, duration) {
+            const startTimestamp = performance.now();

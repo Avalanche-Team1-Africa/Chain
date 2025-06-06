@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notifications | Haki Chain{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #003f7f; /* Ocean Blue */
+        color: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    .main-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+
+    .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #ffc107; /* Gold */
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        background-color: white;
+        border-radius: 5px;
+        padding: 5px 10px;
+        width: 250px;
+    }
+
+    .search-box input {
+        border: none;
+        outline: none;
+        flex-grow: 1;
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .search-box i {
+        color: #003f7f;
+        margin-right: 8px;
+    }
+
+    .mark-all-btn {
+        background-color: #ffc107;
+        color: #003f7f;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s ease;
+    }
+
+    .mark-all-btn:hover {
+        background-color: #e0a800;
+    }
+
+    .notification-card {
+        background-color: white;
+        color: #003f7f;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        margin-bottom: 20px;
+        cursor: pointer;
+    }
+
+    .notification-card.unread {
+        border-left: 5px solid #ffc107;
+        background-color: #f0f8ff;
+    }
+
+    .notification-title {
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+    }
+
+    .notification-message {
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    .notification-timestamp {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 10px;
+    }
+
+    .avatar {
+        background-color: #003f7f;
+        color: #ffc107;
+        font-weight: bold;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+    }
+
+    .profile-info {
+        display: flex;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .profile-name {
+        font-weight: bold;
+        color: #ffc107;
+        margin: 0;
+    }
+
+    .profile-role {
+        font-size: 0.9rem;
+        color: #003f7f;
+        margin: 0;
+    }
+
+    .toastContainer {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .toast {
+        background-color: #fff;
+        color: #003f7f;
+        border-left: 5px solid #ffc107;
+        padding: 15px 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        animation: slideIn 0.3s ease forwards;
+    }
+
+    .toast-icon {
+        margin-right: 10px;
+    }
+
+    .toast-icon i {
+        font-size: 20px;
+        color: #ffc107;
+    }
+
+    .toast-close {
+        margin-left: 20px;
+        font-size: 1.2rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #ccc;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+</style>
+
+<div class="main-container">
+    <h1 class="page-title">Notifications</h1>
+
+    <div class="header-actions">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search notifications..." id="notificationSearch">
+        </div>
+        <button class="mark-all-btn" id="markAllReadBtn">Mark All Read</button>
+    </div>
+
+    {% if notifications %}
+        {% for notification in notifications %}
+            <div class="notification-card{% if not notification.is_read %} unread{% endif %}" data-id="{{ notification.id }}">
+                <div class="notification-title">{{ notification.notification_type|title }}</div>
+                <div class="notification-message">{{ notification.message }}</div>
+                <div class="notification-timestamp">{{ notification.created_at|date:"M d, Y g:i A" }}</div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No notifications found.</p>
+    {% endif %}
+
+    <div class="profile-info">
+        <div class="avatar">
+            {{ request.user.get_full_name.0 }}
+        </div>
+        <div>
+            <p class="profile-name">{{ request.user.get_full_name }}</p>
+            <p class="profile-role">{{ request.user.role|title }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toastContainer" id="toastContainer"></div>
+
+<script>
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    // Mark all notifications as read
+    document.getElementById("markAllReadBtn").addEventListener("click", function () {
+        fetch("{% url 'cases:mark_all_notifications_read' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelectorAll(".notification-card").forEach(el => {
+                    el.classList.remove("unread");
+                });
+                showToast("Success", "All notifications marked as read.");
+            } else {
+                showToast("Error", "Failed to update notifications.");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            showToast("Error", "Something went wrong.");
+        });
+    });
+
+    // Show toast notification
+    function showToast(title, message) {
+        const toastContainer = document.getElementById("toastContainer");
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.innerHTML = `
+            <div class="toast-icon"><i class="fas fa-bell"></i></div>
+            <div class="toast-content">
+                <h6 class="toast-title">${title}</h6>
+                <p class="toast-message">${message}</p>
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+        toastContainer.appendChild(toast);
+
+        // Close on click
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.remove();
+        });
+
+        // Auto close after 5 seconds
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
+    }
+
+    // Optional: Click to mark individual notification as read
+    document.querySelectorAll(".notification-card").forEach(item => {
+        item.addEventListener("click", function () {
+            const notificationId = this.getAttribute("data-id");
+            if (!this.classList.contains("unread")) return;
+
+            fetch("{% url 'cases:mark_notification_read' %}?id=" + notificationId, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrftoken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.classList.remove("unread");
+                    showToast("Updated", "Notification marked as read.");
+                } else {
+                    showToast("Error", "Could not mark as read.");
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

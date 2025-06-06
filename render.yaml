@@ -3,7 +3,7 @@ services:
     name: HakiChain
     env: python
     buildCommand: ./build.sh
-    startCommand:gunicorn HakiChain.wsgi:application
+    startCommand: gunicorn HakiChain.wsgi:application
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: HakiChain.settings

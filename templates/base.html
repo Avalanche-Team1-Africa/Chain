@@ -18,14 +18,14 @@
   <style>
     body {
       font-family: 'Catamaran', sans-serif;
-      background-color: #f8f9fa;
+      background-color: bisque;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
 
     .navbar {
-      padding: 1rem 0;
+      padding: 0.5rem 0;
     }
 
     .navbar-brand {
@@ -58,7 +58,7 @@
 
     .content {
       flex: 1;
-      padding: 60px 15px;
+      padding: 100px 20px;
     }
 
     .alert {
@@ -121,7 +121,7 @@
             <li class="nav-item"><a class="nav-link" href="{% url 'cases:case_create' %}">Create Case</a></li>
           {% elif user.role == 'LAWYER' %}
             <li class="nav-item"><a class="nav-link" href="{% url 'cases:browse_cases' %}">Available Cases</a></li>
-            <!-- <li class="nav-item"><a class="nav-link" href="{% url 'accounts:lawyer_dashboard' %}">My Portfolio</a></li> -->
+            <li class="nav-item"><a class="nav-link" href="{% url 'cases:lawyer_dashboard' %}">Dashboard</a></li>
 
           {% elif user.role == 'DONOR' %}
             <li class="nav-item"><a class="nav-link" href="{% url 'cases:browse_cases' %}">Browse Cases</a></li>

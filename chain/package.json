@@ -1,9 +1,22 @@
 {
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "hardhat": "^2.24.0"
+    "@openzeppelin/contracts": "^4.9.6",
+    "dotenv": "^16.5.0",
+    "hardhat": "^2.24.0",
+    "typescript": "^5.8.3"
   },
-  "dependencies": {
-    "@openzeppelin/contracts": "^5.3.0"
-  }
+  "name": "chain",
+  "version": "1.0.0",
+  "description": "This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

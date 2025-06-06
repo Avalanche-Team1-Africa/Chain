@@ -1,65 +1,65 @@
 {% extends 'base.html' %}
-{% load static %}
-
+{% block title %}Applications for {{ case.title }} - HakiChain{% endblock %}
 {% block content %}
-<div style="padding: 40px;">
-    <h2 style="font-weight: bold; color: #0d6efd; margin-bottom: 30px;">📄 Applications for Case: "{{ case.title }}"</h2>
-
-    {% if applications %}
-        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-            {% for app in applications %}
-                <div style="
-                    flex: 1 1 calc(33% - 20px);
-                    background: white;
-                    border-radius: 15px;
-                    padding: 20px;
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-                    transition: transform 0.3s ease, box-shadow 0.3s ease;
-                "
-                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 16px 30px rgba(0,0,0,0.2)'"
-                onmouseout="this.style.transform='none'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.1)'"
-                >
-                    <!-- Applicant Info -->
-                    <h5 style="color: #343a40; margin-bottom: 10px;">
-                        <i class="fa fa-user-circle"></i>
-                        {{ app.lawyer.user.get_full_name|default:app.lawyer.user.username }}
-                    </h5>
-
-                    <!-- Cover Letter -->
-                    <p style="font-style: italic; color: #6c757d;">"{{ app.cover_letter|truncatewords:30 }}"</p>
-
-                    <!-- Submitted On -->
-                    <p style="margin-top: 10px; font-size: 0.9rem; color: #6c757d;">
-                        <i class="fa fa-calendar-alt"></i> Applied on {{ app.created_at|date:"M d, Y" }}
-                    </p>
-
-                    <!-- Rating -->
-                    {% if app.lawyer.overall_rating %}
-                        <p style="color: #ffc107;">
-                            ⭐ Rating: {{ app.lawyer.overall_rating }}/10
-                        </p>
-                    {% endif %}
-
-                    <!-- Action Buttons -->
-                    <div style="margin-top: 15px; display: flex; gap: 10px;">
-                        <a href="{% url 'accounts:lawyer_profile' user_id=app.lawyer.user.id %}" 
-                           style="flex: 1; padding: 8px 12px; background: #0d6efd; color: white; border-radius: 8px; text-align: center; text-decoration: none;">
-                            View Profile
-                        </a>
-                        <a href="{% url 'cases:assign_lawyer' case_pk=case.pk lawyer_id=app.lawyer.pk %}"
-                           style="flex: 1; padding: 8px 12px; background: #198754; color: white; border-radius: 8px; text-align: center; text-decoration: none;">
-                            Assign
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div style="text-align: center; padding: 100px 20px; color: #6c757d;">
-            <i class="fa fa-envelope-open-text" style="font-size: 60px; opacity: 0.3;"></i>
-            <h4 style="margin-top: 20px;">No applications yet</h4>
-            <p>We’ll notify you once a lawyer applies for this case 🤝</p>
-        </div>
-    {% endif %}
+<div class="container mt-5">
+  <h1>Applications for {{ case.title }}</h1>
+  <a href="{% url 'cases:case_detail' pk=case.pk %}" class="btn btn-outline-primary mb-3">Back to Case</a>
+  
+  {% if applications %}
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Lawyer</th>
+            <th>Applied On</th>
+            <th>Status</th>
+            <th>Cover Letter</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for application in applications %}
+            <tr>
+              <td>{{ application.lawyer.user.get_full_name }}</td>
+              <td>{{ application.applied_at|date:"M d, Y" }}</td>
+              <td>
+                <span class="badge {% if application.status == 'pending' %}bg-warning{% elif application.status == 'accepted' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% else %}bg-info{% endif %}">
+                  {{ application.get_status_display }}
+                </span>
+              </td>
+              <td>{{ application.cover_letter|truncatewords:20 }}</td>
+              <td>
+                {% if application.status == 'pending' %}
+                  <form action="{% url 'cases:assign_lawyer' case_pk=case.pk lawyer_id=application.lawyer.pk %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">Assign</button>
+                  </form>
+                  <form action="{% url 'cases:update_application_status' application_pk=application.pk status='shortlist' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm">Shortlist</button>
+                  </form>
+                  <form action="{% url 'cases:update_application_status' application_pk=application.pk status='reject' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                  </form>
+                {% elif application.status == 'shortlisted' %}
+                  <form action="{% url 'cases:assign_lawyer' case_pk=case.pk lawyer_id=application.lawyer.pk %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">Assign</button>
+                  </form>
+                  <form action="{% url 'cases:update_application_status' application_pk=application.pk status='reject' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No applications have been submitted for this case yet.</p>
+  {% endif %}
 </div>
 {% endblock %}

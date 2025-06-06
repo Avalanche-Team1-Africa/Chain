@@ -5,7 +5,10 @@ app_name = 'cases'
 
 urlpatterns = [
     # NGO Dashboard
+    path('ngo/deposit/', views.deposit_funds, name='deposit_funds'),
+    path('ngo/verify-payment/', views.verify_payment, name='verify_payment'),
     path('ngo/dashboard/', views.ngo_dashboard, name='ngo_dashboard'),
+    path('ngo/check-transaction-status/', views.check_transaction_status, name='check_transaction_status'),
     
     # Case Management
     path('ngo/cases/', views.list_cases, name='list_cases'),
@@ -17,6 +20,9 @@ urlpatterns = [
     path('ngo/cases/<int:pk>/updates/', views.case_updates, name='case_updates'),
     path('ngo/cases/<int:pk>/approve-completion/', views.approve_completion, name='approve_completion'),
     path('cases/<int:case_pk>/milestones/', views.set_milestones, name='set_milestones'),
+    path('ngo/cases/', views.list_cases, name='list_cases'), 
+
+    
     
     
     # Document Management
@@ -24,8 +30,10 @@ urlpatterns = [
     path('documents/<int:pk>/delete/', views.delete_document, name='delete_document'),
     
     # Case Updates
-    path('cases/<int:case_pk>/add-update/', views.add_update, name='add_update'),
-    path('case/<int:case_pk>/assign/<int:lawyer_id>/', views.assign_lawyer, name='assign_lawyer'),
+     path('cases/<int:case_pk>/add-update/', views.add_update, name='add_update'),
+     path('application/<int:application_pk>/status/<str:status>/', views.update_application_status, name='update_application_status'),
+     path('case/<int:case_pk>/assign/<int:lawyer_id>/', views.assign_lawyer, name='assign_lawyer'),
+     path('case/<int:pk>/applications/', views.view_applications, name='view_applications'),
     
     # Lawyer Applications
     path('ngo/cases/<int:case_pk>/applications/', views.view_applications, name='view_applications'),
@@ -90,12 +98,21 @@ urlpatterns = [
     
 
     path('wallet/', views.wallet_dashboard, name='wallet_dashboard'),
-    path('token/redeem/', views.redeem_tokens, name='redeem_tokens'),
+#     path('token/redeem/', views.redeem_tokens, name='redeem_tokens'),
 
      path('token/award/', views.award_tokens, name='award_tokens'),
+
+     path('lawyer/redeem_tokens/', views.redeem_tokens, name='redeem_tokens'),
      # Notifications
     path('lawyer/notifications/', views.lawyer_notifications, name='lawyer_notifications'),
     path('notifications/mark-read/', views.mark_notification_read, name='mark_notification_read'),
     path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+
+
+    path('chat/', views.chat_view, name='chat'),
+    path('chat/<int:case_pk>/', views.chat_view, name='chat_case'),
+    path('chat/history/', views.chat_history, name='chat_history'),
+
+
 ]
     

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Redeem Tokens - HakiChain{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Redeem Tokens</h1>
+    <p>Current Balance: {{ wallet_balance }} tokens</p>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="{{ form.tokens.id_for_label }}" class="form-label">Number of Tokens</label>
+            {{ form.tokens }}
+            {% if form.tokens.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.tokens.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.redemption_method.id_for_label }}" class="form-label">Redemption Method</label>
+            {{ form.redemption_method }}
+            {% if form.redemption_method.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.redemption_method.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.eth_address.id_for_label }}" class="form-label">Ethereum Address (for Crypto)</label>
+            {{ form.eth_address }}
+            <small class="form-text text-muted">Enter a valid Ethereum address (e.g., 0x...).</small>
+            {% if form.eth_address.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.eth_address.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number (for M-Pesa)</label>
+            {{ form.phone_number }}
+            <small class="form-text text-muted">Enter a valid Kenyan phone number (e.g., +2547xxxxxxxx).</small>
+            {% if form.phone_number.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.phone_number.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Redeem Tokens</button>
+    </form>
+</div>
+
+<script>
+    // Bootstrap form validation
+    (function () {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+
+<style>
+    body {
+        background-color: #F5F6F5;
+    }
+    .container {
+        max-width: 600px;
+    }
+    .btn-primary {
+        background-color: #1E88E5; /* Ocean Blue */
+        border-color: #1E88E5;
+    }
+    .btn-primary:hover {
+        background-color: #1565C0;
+        border-color: #1565C0;
+    }
+    .alert-success {
+        background-color: #FFD700; /* Gold */
+        color: #333;
+        border-color: #FFD700;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+</style>
+{% endblock %}

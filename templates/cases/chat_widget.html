@@ -1,0 +1,139 @@
+<div id="chat-widget" class="chat-widget">
+    <button id="chat-toggle" class="chat-toggle">💬 Support</button>
+    <div id="chat-content" class="chat-content" style="display: none;">
+        <div id="chat-messages" class="chat-messages"></div>
+        <form id="chat-form" class="chat-form">
+            <input type="text" id="message-input" name="message" placeholder="Type your message..." required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+</div>
+
+<style>
+.chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+.chat-toggle {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.chat-content {
+    width: 300px;
+    height: 400px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+.chat-form {
+    display: flex;
+    padding: 10px;
+}
+.chat-form input[type="text"] {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+.chat-form button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-left: 5px;
+}
+.message {
+    margin: 5px 0;
+    padding: 8px;
+    border-radius: 5px;
+}
+.user-message {
+    background-color: #e6f3ff;
+    margin-left: 10%;
+}
+.bot-message {
+    background-color: #f0f0f0;
+    margin-right: 10%;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const chatToggle = document.getElementById('chat-toggle');
+    const chatContent = document.getElementById('chat-content');
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const chatMessages = document.getElementById('chat-messages');
+    let ws = null;
+
+    chatToggle.addEventListener('click', () => {
+        chatContent.style.display = chatContent.style.display === 'none' ? 'block' : 'none';
+        if (chatContent.style.display === 'block' && !ws) {
+            ws = new WebSocket(`ws://${window.location.host}/ws/chat/`);
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                // Load recent messages
+                fetch('/cases/chat/history/')
+                    .then(response => response.json())
+                    .then(data => {
+                        data.messages.forEach(msg => {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = `message ${msg.is_user_message ? 'user-message' : 'bot-message'}`;
+                            messageDiv.innerHTML = `<strong>${msg.is_user_message ? 'You' : 'Bot'} (${new Date(msg.timestamp).toLocaleString()}):</strong> ${msg.message}`;
+                            chatMessages.appendChild(messageDiv);
+                        });
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    });
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${data.sender === 'bot' ? 'bot-message' : 'user-message'}`;
+                messageDiv.innerHTML = `<strong>${data.sender === 'bot' ? 'Bot' : 'You'} (${new Date(data.timestamp).toLocaleString()}):</strong> ${data.message}`;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                ws = null;
+            };
+        }
+    });
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const message = messageInput.value.trim();
+        if (message && ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ message }));
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            messageDiv.innerHTML = `<strong>You (${new Date().toLocaleString()}):</strong> ${message}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            messageInput.value = '';
+        }
+    });
+});
+</script>

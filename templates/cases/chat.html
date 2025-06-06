@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="chat-container">
+    <h2>Support Chat {% if case %}for Case: {{ case.title }}{% endif %}</h2>
+    <div id="chat-messages" class="chat-messages">
+        {% for message in chat_history %}
+            <div class="message {% if message.is_user_message %}user-message{% else %}bot-message{% endif %}">
+                <strong>{{ message.is_user_message|yesno:"You,Bot" }} ({{ message.timestamp|date:"M d, Y H:i" }}):</strong>
+                {{ message.message }}
+            </div>
+        {% endfor %}
+    </div>
+    <form id="chat-form" class="chat-form">
+        <input type="hidden" name="case_id" value="{{ case.id|default:'' }}">
+        <input type="text" id="message-input" name="message" placeholder="Type your message..." required>
+        <button type="submit">Send</button>
+    </form>
+</div>
+
+<style>
+.chat-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+.chat-messages {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #eee;
+    margin-bottom: 10px;
+}
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
+.user-message {
+    background-color: #e6f3ff;
+    margin-left: 20%;
+}
+.bot-message {
+    background-color: #f0f0f0;
+    margin-right: 20%;
+}
+.chat-form {
+    display: flex;
+    gap: 10px;
+}
+.chat-form input[type="text"] {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+.chat-form button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+</style>
+
+<script>
+let ws = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const chatMessages = document.getElementById('chat-messages');
+    const caseId = chatForm.querySelector('input[name="case_id"]').value;
+
+    // Initialize WebSocket
+    ws = new WebSocket(`ws://${window.location.host}/ws/chat/`);
+
+    ws.onopen = () => {
+        console.log('WebSocket connected');
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${data.sender === 'bot' ? 'bot-message' : 'user-message'}`;
+        messageDiv.innerHTML = `<strong>${data.sender === 'bot' ? 'Bot' : 'You'} (${new Date(data.timestamp).toLocaleString()}):</strong> ${data.message}`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    ws.onclose = () => {
+        console.log('WebSocket disconnected');
+    };
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const message = messageInput.value.trim();
+        if (message && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                message: message,
+                case_id: caseId
+            }));
+            // Add user message to UI immediately
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            messageDiv.innerHTML = `<strong>You (${new Date().toLocaleString()}):</strong> ${message}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            messageInput.value = '';
+        }
+    });
+});
+</script>
+{% endblock %}

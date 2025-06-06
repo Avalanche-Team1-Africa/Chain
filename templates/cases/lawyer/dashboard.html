@@ -1,186 +1,867 @@
-<!-- templates/cases/lawyer/dashboard.html -->
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Lawyer Dashboard{% endblock %}
+{% block title %}Lawyer Dashboard - HakiChain{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    :root {
+        --ocean-blue: #0077b6;
+        --ocean-blue-light: #90e0ef;
+        --ocean-blue-dark: #023e8a;
+        --gold: #ffd700;
+        --gold-light: #fff3b0;
+        --white: #ffffff;
+        --gray-light: #f8f9fa;
+        --gray: #e9ecef;
+        --text-dark: #343a40;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --sidebar-width: 280px;
+    }
+
+    body {
+        background-color: var(--gray-light);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .dashboard-container {
+        min-height: 100vh;
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+        width: var(--sidebar-width);
+        background: linear-gradient(135deg, var(--ocean-blue-dark) 0%, #01579b 100%);
+        color: var(--white);
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        overflow-y: auto;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+
+    .logo {
+        font-size: 28px;
+        padding: 20px 0;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 30px;
+    }
+
+    .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.85);
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar .nav-link i {
+        font-size: 18px;
+        margin-right: 15px;
+        width: 20px;
+        text-align: center;
+    }
+
+    .sidebar .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: var(--white);
+        transform: translateX(5px);
+    }
+
+    .sidebar .nav-link.active {
+        background-color: var(--white);
+        color: var(--ocean-blue-dark);
+        font-weight: 600;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar .profile {
+        padding: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 20px;
+        position: relative;
+    }
+
+    .sidebar .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: var(--gold);
+        color: var(--ocean-blue-dark);
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        margin-bottom: 0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-details {
+        display: flex;
+        align-items: center;
+    }
+
+    .profile-name {
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+
+    .profile-role {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+    /* Main Content Styling */
+    .main {
+        margin-left: var(--sidebar-width);
+        padding: 30px;
+        width: calc(100% - var(--sidebar-width));
+        transition: all 0.3s ease;
+    }
+
+    .header {
+        background-color: var(--white);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--ocean-blue-dark);
+        margin-bottom: 0;
+    }
+
+    .search-box {
+        background-color: var(--gray-light);
+        border-radius: 50px;
+        padding: 10px 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        width: 300px;
+    }
+
+    .search-box input {
+        background-color: transparent;
+        outline: none;
+    }
+
+    /* Stats Cards */
+    .stat-card {
+        background-color: var(--white);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        padding: 20px;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+    }
+
+    .stat-card.primary::before {
+        background-color: var(--ocean-blue);
+    }
+
+    .stat-card.warning::before {
+        background-color: var(--warning);
+    }
+
+    .stat-card.success::before {
+        background-color: var(--success);
+    }
+
+    .stat-card.gold::before {
+        background-color: var(--gold);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-title {
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        color: var(--text-dark);
+        opacity: 0.7;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    /* Card Styling */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--ocean-blue) 0%, var(--ocean-blue-dark) 100%);
+        color: var(--white);
+        padding: 15px 20px;
+        border-bottom: none;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    /* Button Styling */
+    .btn {
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--ocean-blue) 0%, var(--ocean-blue-dark) 100%);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--ocean-blue-dark) 0%, var(--ocean-blue) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-outline-warning {
+        border-color: var(--gold);
+        color: var(--text-dark);
+    }
+
+    .btn-outline-warning:hover {
+        background-color: var(--gold);
+        color: var(--text-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Table Styling */
+    .table {
+        border-collapse: separate;
+        border-spacing: 0 5px;
+    }
+
+    .table thead th {
+        background-color: var(--gray-light);
+        border: none;
+        padding: 12px 15px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .table tbody tr {
+        background-color: var(--white);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .table tbody td {
+        border: none;
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+    .badge {
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    /* Leaderboard Section */
+    .rank {
+        display: inline-block;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: var(--gold-light);
+        color: var(--text-dark);
+        text-align: center;
+        line-height: 28px;
+        font-weight: 600;
+        margin-right: 5px;
+    }
+
+    .rank:nth-child(1) {
+        background-color: var(--gold);
+        color: var(--white);
+    }
+
+    .lawyer-name {
+        font-weight: 600;
+    }
+
+    /* Form Styling */
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid var(--gray);
+    }
+
+    .form-control:focus {
+        border-color: var(--ocean-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.15);
+    }
+
+    .form-text {
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    /* Quick Actions */
+    .quick-actions .btn {
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .sidebar {
+            width: 80px;
+            padding: 15px 5px;
+        }
+
+        .sidebar .nav-link span,
+        .logo span {
+            display: none;
+        }
+
+        .sidebar .nav-link {
+            padding: 12px;
+            justify-content: center;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0;
+            font-size: 20px;
+        }
+
+        .main {
+            margin-left: 80px;
+            width: calc(100% - 80px);
+        }
+
+        .profile {
+            display: none;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 100%;
+            height: auto;
+            position: relative;
+            padding: 10px 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .logo {
+            width: auto;
+            border-bottom: none;
+            margin-bottom: 0;
+            padding: 10px 0;
+        }
+
+        .sidebar .nav-link {
+            display: block;
+            width: auto;
+            margin-right: 5px;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 5px;
+            font-size: 14px;
+        }
+
+        .sidebar .nav-link span {
+            display: inline;
+        }
+
+        .main {
+            margin-left: 0;
+            width: 100%;
+            padding: 15px;
+        }
+
+        .search-box {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="mb-4">Lawyer Dashboard</h1>
-    
-    <!-- Stats Overview -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h5 class="card-title">In Progress</h5>
-                    <p class="card-text display-4">{{ cases_in_progress }}</p>
-                </div>
-            </div>
+<div class="dashboard-container d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar p-4">
+        <div class="logo mb-4">
+            <i class="fas fa-balance-scale me-2"></i>
+            <span>HakiChain</span>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <h5 class="card-title">Under Review</h5>
-                    <p class="card-text display-4">{{ cases_under_review }}</p>
+        <a href="{% url 'cases:lawyer_dashboard' %}" class="nav-link active">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="{% url 'cases:browse_cases' %}" class="nav-link">
+            <i class="fas fa-briefcase"></i>
+            <span>Browse Cases</span>
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-user-friends"></i>
+            <span>My Clients</span>
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-clock"></i>
+            <span>Time Tracking</span>
+        </a>
+        <a href="{% url 'cases:lawyer_ratings' %}" class="nav-link">
+            <i class="fas fa-star"></i>
+            <span>My Ratings</span>
+        </a>
+        <a href="{% url 'cases:lawyer_success_stories' %}" class="nav-link">
+            <i class="fas fa-trophy"></i>
+            <span>Success Stories</span>
+        </a>
+        <a href="{% url 'cases:redeem_tokens' %}" class="nav-link">
+            <i class="fas fa-coins"></i>
+            <span>Redeem Tokens</span>
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
+        
+        <div class="profile mt-auto">
+            <div class="profile-details d-flex align-items-center">
+                <div class="avatar">
+                    <span>{{ request.user.get_full_name|slice:":2" }}</span>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">Completed</h5>
-                    <p class="card-text display-4">{{ cases_completed }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <h5 class="card-title">Rating</h5>
-                    <p class="card-text">
-                        <span class="display-4">{{ average_rating|floatformat:1 }}</span>
-                        <span class="text-warning">
-                            {% for i in "12345" %}
-                                {% if forloop.counter <= average_rating|add:0.5|floatformat:0 %}
-                                    <i class="fas fa-star"></i>
-                                {% else %}
-                                    <i class="far fa-star"></i>
-                                {% endif %}
-                            {% endfor %}
-                        </span>
-                    </p>
+                <div class="ms-2">
+                    <div class="profile-name">{{ request.user.get_full_name }}</div>
+                    <div class="profile-role">Attorney</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Total Earnings -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Total Earnings</h5>
-                    <p class="card-text display-4">${{ total_earnings|default:"0" }}</p>
+    <!-- Main Content -->
+    <div class="main">
+        <div class="header d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">Lawyer Dashboard</h1>
+                <p class="text-muted mb-0">Welcome back, {{ request.user.first_name }}!</p>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search text-muted me-2"></i>
+                <input type="text" class="border-0 flex-grow-1" placeholder="Search cases, clients...">
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-4">
+            <div class="col">
+                <div class="stat-card primary">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="stat-title m-0">In Progress</h5>
+                        <i class="fas fa-tasks text-primary opacity-25 fs-1"></i>
+                    </div>
+                    <div class="stat-value">{{ cases_in_progress }}</div>
+                    <div class="progress mt-3" style="height: 5px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ cases_in_progress|default:0|floatformat:0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="stat-card warning">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="stat-title m-0">Under Review</h5>
+                        <i class="fas fa-search text-warning opacity-25 fs-1"></i>
+                    </div>
+                    <div class="stat-value">{{ cases_under_review }}</div>
+                    <div class="progress mt-3" style="height: 5px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ cases_under_review|default:0|floatformat:0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="stat-card success">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="stat-title m-0">Completed</h5>
+                        <i class="fas fa-check-circle text-success opacity-25 fs-1"></i>
+                    </div>
+                    <div class="stat-value">{{ cases_completed }}</div>
+                    <div class="progress mt-3" style="height: 5px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ cases_completed|default:0|floatformat:0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="stat-card gold">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="stat-title m-0">Token Balance</h5>
+                        <i class="fas fa-coins text-warning opacity-25 fs-1"></i>
+                    </div>
+                    <div class="stat-value">{{ request.user.wallet.balance|floatformat:2 }}</div>
+                    <a href="{% url 'cases:redeem_tokens' %}" class="btn btn-sm btn-outline-warning mt-3">Redeem Now</a>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Quick Actions</h5>
-                    <div class="btn-group">
-                        <a href="{% url 'cases:browse_cases' %}" class="btn btn-primary">Browse Cases</a>
-                        <a href="{% url 'cases:lawyer_ratings' %}" class="btn btn-info">View Ratings</a>
-                        <a href="{% url 'cases:lawyer_success_stories' %}" class="btn btn-success">Success Stories</a>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Quick Actions</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'cases:browse_cases' %}" class="btn btn-primary">
+                        <i class="fas fa-briefcase me-2"></i>Browse Cases
+                    </a>
+                    <a href="{% url 'cases:lawyer_ratings' %}" class="btn btn-info text-white">
+                        <i class="fas fa-star me-2"></i>View Ratings
+                    </a>
+                    <a href="{% url 'cases:lawyer_success_stories' %}" class="btn btn-success">
+                        <i class="fas fa-trophy me-2"></i>Success Stories
+                    </a>
+                    <a href="{% url 'cases:redeem_tokens' %}" class="btn btn-outline-warning">
+                        <i class="fas fa-coins me-2"></i>Redeem Tokens
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Active Cases -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Active Cases</h4>
+                        <a href="{% url 'cases:browse_cases' %}" class="btn btn-sm btn-light">View All</a>
+                    </div>
+                    <div class="card-body">
+                        {% if assigned_cases %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Case Title</th>
+                                            <th>Status</th>
+                                            <th>Bounty</th>
+                                            <th>Deadline</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for case in assigned_cases %}
+                                            <tr>
+                                                <td>
+                                                    <div class="fw-bold">{{ case.title }}</div>
+                                                    <small class="text-muted">ID: #{{ case.id }}</small>
+                                                </td>
+                                                <td>
+                                                    {% if case.status == 'open' %}
+                                                        <span class="badge bg-primary">Open</span>
+                                                    {% elif case.status == 'assigned' %}
+                                                        <span class="badge bg-info">Assigned</span>
+                                                    {% elif case.status == 'in_progress' %}
+                                                        <span class="badge bg-warning">In Progress</span>
+                                                    {% elif case.status == 'review' %}
+                                                        <span class="badge bg-secondary">Review</span>
+                                                    {% elif case.status == 'completed' %}
+                                                        <span class="badge bg-success">Completed</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="text-success fw-bold">${{ case.bounty_amount }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="{% if case.deadline|date:'U' < now|date:'U' %}text-danger{% endif %}">
+                                                        {{ case.deadline|date:"M d, Y" }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex">
+                                                        <a href="{% url 'cases:case_detail_lawyer' pk=case.pk %}" class="btn btn-sm btn-outline-primary me-1">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        {% if case.status == 'assigned' or case.status == 'in_progress' %}
+                                                            <a href="{% url 'cases:submit_progress' case_pk=case.pk %}" class="btn btn-sm btn-outline-info me-1">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="{% url 'cases:submit_case_completion' case_pk=case.pk %}" class="btn btn-sm btn-outline-success">
+                                                                <i class="fas fa-check"></i>
+                                                            </a>
+                                                        {% endif %}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="fas fa-folder-open text-muted" style="font-size: 48px;"></i>
+                                </div>
+                                <p class="lead mb-0">You don't have any active cases at the moment.</p>
+                                <a href="{% url 'cases:browse_cases' %}" class="btn btn-primary mt-3">Browse Available Cases</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Leaderboard Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">🏆 Top Lawyers This Month</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for rank, lawyer in top_lawyers %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="rank me-3">{{ rank }}</span>
+                                        <div>
+                                            <div class="lawyer-name">{{ lawyer.user.get_full_name }}</div>
+                                            <small class="text-muted">{{ lawyer.user.profile.specialty|default:'General Practice' }}</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-warning text-dark">{{ lawyer.total_tokens }} tokens</span>
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item text-center py-4">
+                                    <p class="mb-0">No lawyers found in leaderboard</p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Redemption Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">💰 Redeem Your Tokens</h4>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                    <div class="mb-3">
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <form method="post" action="{% url 'cases:redeem_tokens' %}" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="{{ form.tokens.id_for_label }}" class="form-label">Number of Tokens</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                                    {{ form.tokens }}
+                                </div>
+                                <small class="form-text text-muted">Enter the number of tokens to redeem (e.g., 10.50).</small>
+                                {% if form.tokens.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.tokens.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.redemption_method.id_for_label }}" class="form-label">Redemption Method</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-exchange-alt"></i></span>
+                                    {{ form.redemption_method }}
+                                </div>
+                                {% if form.redemption_method.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.redemption_method.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.eth_address.id_for_label }}" class="form-label">Ethereum Address (for Crypto)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fab fa-ethereum"></i></span>
+                                    {{ form.eth_address }}
+                                </div>
+                                <small class="form-text text-muted">Enter a valid Ethereum address (e.g., 0x...).</small>
+                                {% if form.eth_address.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.eth_address.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number (for M-Pesa)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    {{ form.phone_number }}
+                                </div>
+                                <small class="form-text text-muted">Enter a valid Kenyan phone number (e.g., +2547xxxxxxxx).</small>
+                                {% if form.phone_number.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.phone_number.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-coins me-2"></i>Redeem Tokens
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <!-- Redemption History -->
+                        {% if redemption_history %}
+                            <div class="mt-4 mt-md-0">
+                                <h5 class="mb-3">🧾 Redemption History</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Amount</th>
+                                                <th>Method</th>
+                                                <th>Transaction ID</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for tx in redemption_history %}
+                                                {% if tx.transaction_type == 'spend' %}
+                                                    <tr>
+                                                        <td>{{ tx.created_at|date:"M j, Y" }}</td>
+                                                        <td>-{{ tx.amount|floatformat:2 }}</td>
+                                                        <td>
+                                                            {% if 'crypto' in tx.description|lower %}
+                                                                <span class="badge bg-info text-dark">Crypto</span>
+                                                            {% elif 'mpesa' in tx.description|lower %}
+                                                                <span class="badge bg-success text-white">M-Pesa</span>
+                                                            {% else %}
+                                                                <span class="badge bg-secondary">Unknown</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if tx.external_tx_id %}
+                                                                <a href="{% if 'crypto' in tx.description|lower %}https://sepolia.etherscan.io/tx/{{ tx.external_tx_id }}{% else %}https://dashboard.paystack.com/#/transactions/{{ tx.external_tx_id }}{% endif %}" target="_blank" class="text-decoration-none">
+                                                                    {{ tx.external_tx_id|truncatechars:10 }}
+                                                                </a>
+                                                            {% else %}
+                                                                N/A
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="mt-4 mt-md-0 text-center py-5">
+                                <div class="mb-3">
+                                    <i class="fas fa-history text-muted" style="font-size: 48px;"></i>
+                                </div>
+                                <p>No redemption history available.</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Current Cases -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h4>Active Cases</h4>
-        </div>
-        <div class="card-body">
-            {% if assigned_cases %}
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Case Title</th>
-                                <th>NGO</th>
-                                <th>Status</th>
-                                <th>Bounty</th>
-                                <th>Due Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for case in assigned_cases %}
-                                <tr>
-                                    <td><a href="{% url 'cases:case_detail_lawyer' pk=case.pk %}">{{ case.title }}</a></td>
-                                    <td>{{ case.ngo.get_full_name }}</td>
-                                    <td>
-                                        {% if case.status == 'assigned' %}
-                                            <span class="badge badge-primary">Assigned</span>
-                                        {% elif case.status == 'in_progress' %}
-                                            <span class="badge badge-info">In Progress</span>
-                                        {% elif case.status == 'review' %}
-                                            <span class="badge badge-warning">Under Review</span>
-                                        {% elif case.status == 'completed' %}
-                                            <span class="badge badge-success">Completed</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>${{ case.bounty_amount }}</td>
-                                    <td>{{ case.deadline|date:"M d, Y" }}</td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{% url 'cases:case_detail_lawyer' pk=case.pk %}" class="btn btn-outline-primary">View</a>
-                                            {% if case.status == 'assigned' or case.status == 'in_progress' %}
-                                                <a href="{% url 'cases:submit_progress' case_pk=case.pk %}" class="btn btn-outline-info">Update</a>
-                                                <a href="{% url 'cases:submit_case_completion' case_pk=case.pk %}" class="btn btn-outline-success">Complete</a>
-                                            {% endif %}
-                                            {% if case.status == 'completed' %}
-                                                <a href="{% url 'cases:add_success_story' case_pk=case.pk %}" class="btn btn-outline-warning">Add Story</a>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="text-muted">You don't have any active cases. <a href="{% url 'cases:browse_cases' %}">Browse available cases</a> to get started.</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Pending Applications -->
-    <div class="card">
-        <div class="card-header bg-secondary text-white">
-            <h4>Pending Applications</h4>
-        </div>
-        <div class="card-body">
-            {% if pending_applications %}
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Case Title</th>
-                                <th>NGO</th>
-                                <th>Applied On</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for application in pending_applications %}
-                                <tr>
-                                    <td><a href="{% url 'cases:case_detail_lawyer' pk=application.case.pk %}">{{ application.case.title }}</a></td>
-                                    <td>{{ application.case.ngo.get_full_name }}</td>
-                                    <td>{{ application.created_at|date:"M d, Y" }}</td>
-                                    <td>
-                                        {% if application.status == 'pending' %}
-                                            <span class="badge badge-secondary">Pending</span>
-                                        {% elif application.status == 'shortlisted' %}
-                                            <span class="badge badge-info">Shortlisted</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'cases:case_detail_lawyer' pk=application.case.pk %}" class="btn btn-sm btn-outline-primary">View Case</a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="text-muted">You don't have any pending applications.</p>
-            {% endif %}
-        </div>
-    </div>
 </div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Bootstrap form validation
+    (function () {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %}
 {% endblock %}

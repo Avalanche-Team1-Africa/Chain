@@ -216,9 +216,6 @@ LOGIN_REDIRECT_URL = 'accounts:dashboard'
 # AFRICASTALKING_API_KEY = config('AFRICASTALKING_API_KEY')
 
 
-AFRICASTALKING_USERNAME='Kwepo'
-AFRICASTALKING_API_KEY='atsk_aeb4e4fb0e6ea6ca6de0af7fc2e21f810c008c4f1a899b9611d9eae8871ce18413a23a5b'
-
 
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -238,8 +235,6 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 
 
-PAYSTACK_SECRET_KEY = 'sk_live_054436278c8f761a4564228ad4ac60c39995024d'
-PAYSTACK_PUBLIC_KEY = 'pk_live_3ac85002a665048c363ad439bc409e06c03f97ae'  
 
 # URLs for Paystack endpoints are hardcoded in the views, but you can add them here as well
 PAYSTACK_API_URL = 'https://api.paystack.co'

@@ -16,8 +16,10 @@ from django.db.models import Q
 import json
 import logging
 import io
-from docxtpl import DocxTemplate
-from django.core.files.base import ContentFile
+import os
+import africastalking
+import requests
+from .models import WalletTransaction  # Ensure WalletTransaction is imported
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
@@ -25,10 +27,13 @@ from reportlab.lib.styles import getSampleStyleSheet
 from cases.utils import award_tokens
 from decimal import Decimal
 from django.db import transaction
+from django.db.transaction import atomic
 from .models import CaseNotification, TokenTransaction  
 # from ratelimit.decorators import ratelimit       
 import os
 import africastalking
+import requests
+from web3 import Web3
 from accounts import models
 from .models import (
     Case,
@@ -60,12 +65,54 @@ from .forms import (
     SuccessStoryForm,
     CaseEventForm,
     CaseMessageForm,
-    DocumentGenerationForm
+    TokenRedemptionForm,
+    DocumentGenerationForm,
+    WalletDepositForm
+
     
 )
 
 @login_required
 def ngo_dashboard(request):
+    """Enhanced dashboard with analytics for NGOs"""
+    if request.user.role != 'NGO' or not hasattr(request.user, 'ngo_profile'):
+        return HttpResponseForbidden("You must be an NGO to access this page")
+    
+    cases = Case.objects.filter(ngo=request.user)
+    case_count = cases.count()
+    completed_count = cases.filter(status='completed').count()
+    
+    # Calculate total donations safely
+    total_donations = sum(c.total_donations() for c in cases) if cases else 0
+    
+    # Case metrics
+    case_stats = {
+        'total_cases': case_count,
+        'open_cases': cases.filter(status='open').count(),
+        'in_progress_cases': cases.filter(status='in_progress').count(),
+        'completed_cases': completed_count,
+        'avg_completion_time': cases.filter(status='completed').annotate(
+            time_to_complete=ExpressionWrapper(
+                F('updated_at') - F('created_at'),
+                output_field=DurationField()
+            )
+        ).aggregate(avg_time=Avg('time_to_complete'))['avg_time'],
+        'success_rate': (completed_count / max(case_count, 1)) * 100,
+        'total_donations': total_donations,
+        'avg_donations_per_case': total_donations / max(case_count, 1),
+    }
+    
+    category_data = cases.values('category__name').annotate(count=Count('id')).order_by('-count')
+    monthly_trend = cases.annotate(month=TruncMonth('created_at')).values('month').annotate(count=Count('id')).order_by('month')
+    
+    context = {
+        'case_stats': case_stats,
+        'category_data': category_data,
+        'monthly_trend': monthly_trend,
+        'recent_cases': cases.order_by('-created_at')[:5],
+    }
+    
+    return render(request, 'cases/ngo/dashboard.html', context)
     """Enhanced dashboard with analytics for NGOs"""
     if request.user.role != 'NGO' or not hasattr(request.user, 'ngo_profile'):
         return HttpResponseForbidden("You must be an NGO to access this page")
@@ -430,38 +477,94 @@ def view_applications(request, case_pk):
     return render(request, 'cases/ngo/view_applications.html', context)
 
 
+logger = logging.getLogger(__name__)
+
 @login_required
+@require_POST
 def update_application_status(request, application_pk, status):
     """Update status of a lawyer application (shortlist, accept, reject)"""
     application = get_object_or_404(LawyerApplication, pk=application_pk)
     if request.user != application.case.ngo or request.user.role != 'NGO':
         return HttpResponseForbidden("You don't have permission to update this application")
-    if status == 'shortlist':
-        application.status = 'shortlisted'
-        application.case.shortlisted_lawyers.add(application.lawyer)
-        message = "Lawyer has been shortlisted!"
-    elif status == 'accept':
-        application.status = 'accepted'
-        application.case.assigned_lawyer = application.lawyer
-        application.case.status = 'assigned'
-        application.case.save()
-        message = f"Case has been assigned to {application.lawyer.user.get_full_name()}!"
-        send_mail(
-            f'You have been assigned to case: {application.case.title}',
-            f'Your application has been accepted for the case "{application.case.title}". Please log in to the platform to view the details.',
-            settings.DEFAULT_FROM_EMAIL,
-            [application.lawyer.user.email],
-            fail_silently=False,
-        )
-    elif status == 'reject':
-        application.status = 'rejected'
-        message = "Application has been rejected."
-    else:
+    
+    case = application.case
+    lawyer = application.lawyer
+    
+    if status not in ['shortlist', 'accept', 'reject']:
         messages.error(request, "Invalid action!")
-        return redirect('cases:view_applications', case_pk=application.case.pk)
-    application.save()
+        return redirect('cases:view_applications', case_pk=case.pk)
+    
+    with transaction.atomic():
+        if status == 'shortlist':
+            application.status = 'shortlisted'
+            case.shortlisted_lawyers.add(lawyer)
+            message = f"Lawyer {lawyer.user.get_full_name()} has been shortlisted!"
+        elif status == 'accept':
+            if case.status != 'open':
+                messages.error(request, "This case is no longer open for assignment.")
+                return redirect('cases:view_applications', case_pk=case.pk)
+            application.status = 'accepted'
+            application.accepted_at = timezone.now()
+            case.assigned_lawyer = lawyer
+            case.status = 'assigned'
+            case.assigned_at = timezone.now()
+            case.save()
+            message = f"Case assigned to {lawyer.user.get_full_name()}!"
+            
+            # Email notification
+            send_mail(
+                subject=f'You have been assigned to case: {case.title}',
+                message=f'Your application has been accepted for the case "{case.title}". Please log in to view details.',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[lawyer.user.email],
+                fail_silently=False,
+            )
+            
+            # SMS notification
+            phone_number = getattr(lawyer.user, 'phone_number', None) or getattr(lawyer, 'phone_number', None)
+            if phone_number:
+                send_sms_notification(
+                    phone_number=phone_number,
+                    message=f"Congratulations {lawyer.user.get_full_name()}! You have been assigned to case: {case.title}. Log in to view details."
+                )
+            
+            # Notify other applicants
+            for other_app in case.applications.exclude(pk=application_pk):
+                other_app.status = 'rejected'
+                other_app.save()
+                send_mail(
+                    subject=f'Update on your application for case: {case.title}',
+                    message=f'We regret to inform you that another lawyer has been assigned to the case "{case.title}". Thank you for your interest.',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[other_app.lawyer.user.email],
+                    fail_silently=True,
+                )
+        else:  # reject
+            application.status = 'rejected'
+            message = f"Application from {lawyer.user.get_full_name()} has been rejected."
+            
+            # Email notification
+            send_mail(
+                subject=f'Update on your application for case: {case.title}',
+                message=f'We regret to inform you that your application for the case "{case.title}" has been rejected. Thank you for your interest.',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[lawyer.user.email],
+                fail_silently=True,
+            )
+            
+            # SMS notification
+            phone_number = getattr(lawyer.user, 'phone_number', None) or getattr(lawyer, 'phone_number', None)
+            if phone_number:
+                send_sms_notification(
+                    phone_number=phone_number,
+                    message=f"Your application for case: {case.title} was not selected. Thank you for applying."
+                )
+        
+        application.save()
+    
     messages.success(request, message)
-    return redirect('cases:view_applications', case_pk=application.case.pk)
+    logger.info(f"Application {application_pk} for case {case.pk} updated to {status} by NGO {request.user.id}")
+    return redirect('cases:view_applications', case_pk=case.pk)
 
 @login_required
 def invite_lawyers(request, case_pk):
@@ -518,9 +621,85 @@ def invite_lawyers(request, case_pk):
     return render(request, 'cases/ngo/invite_lawyer.html', context)
 
 
+@login_required
+@require_POST
 def assign_lawyer(request, case_pk, lawyer_id):
-    # Your logic here
-    return redirect('cases/ngo/assign_lawyer.html')
+    """Assign a lawyer to a case directly from an application"""
+    case = get_object_or_404(Case, pk=case_pk)
+    if request.user != case.ngo or request.user.role != 'NGO':
+        return HttpResponseForbidden("You don't have permission to assign lawyers to this case")
+    
+    lawyer = get_object_or_404(models.LawyerProfile, pk=lawyer_id)
+    
+    if case.status != 'open':
+        messages.error(request, "This case is no longer open for assignment.")
+        return redirect('cases:view_applications', case_pk=case.pk)
+    
+    with transaction.atomic():
+        # Check if an application exists, create one if not
+        application, created = LawyerApplication.objects.get_or_create(
+            case=case,
+            lawyer=lawyer,
+            defaults={
+                'status': 'accepted',
+                'cover_letter': 'Assigned directly by NGO',
+                'accepted_at': timezone.now(),
+            }
+        )
+        
+        if not created and application.status != 'pending':
+            messages.warning(request, f"Lawyer {lawyer.user.get_full_name()} has already been processed.")
+            return redirect('cases:view_applications', case_pk=case.pk)
+        
+        # Update application status
+        application.status = 'accepted'
+        application.accepted_at = timezone.now()
+        application.save()
+        
+        # Assign lawyer to case
+        case.assigned_lawyer = lawyer
+        case.status = 'assigned'
+        case.assigned_at = timezone.now()
+        case.save()
+        
+        # Email notification
+        # send_mail(
+        #     subject=f'You have been assigned to case: {case.title}',
+        #     message=f'Congratulations! You have been assigned to the case "{case.title}". Please log in to view details.',
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=[lawyer.user.email],
+        #     fail_silently=False,
+        # )
+        
+        # SMS notification
+        phone_number = getattr(lawyer.user, 'phone_number', None) or getattr(lawyer, 'phone_number', None)
+        if phone_number:
+            send_sms_notification(
+                phone_number=phone_number,
+                message=f"Congratulations {lawyer.user.get_full_name()}! You have been assigned to case: {case.title}. Log in to view details."
+            )
+        
+        # Reject other applications
+        for other_app in case.applications.exclude(pk=application.pk):
+            other_app.status = 'rejected'
+            other_app.save()
+            send_mail(
+                subject=f'Update on your application for case: {case.title}',
+                message=f'We regret to inform you that another lawyer has been assigned to the case "{case.title}". Thank you for your interest.',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[other_app.lawyer.user.email],
+                fail_silently=True,
+            )
+            phone_number = getattr(other_app.lawyer.user, 'phone_number', None) or getattr(other_app.lawyer, 'phone_number', None)
+            if phone_number:
+                send_sms_notification(
+                    phone_number=phone_number,
+                    message=f"Your application for case: {case.title} was not selected. Thank you for applying."
+                )
+    
+    messages.success(request, f"Lawyer {lawyer.user.get_full_name()} has been assigned to the case!")
+    logger.info(f"Lawyer {lawyer_id} assigned to case {case.pk} by NGO {request.user.id}")
+    return redirect('cases:view_applications', case_pk=case.pk)
 
 @login_required
 def review_completed_case(request, pk):
@@ -999,22 +1178,18 @@ def lawyer_notifications(request):
 # @ratelimit(key='user', rate='5/d', method='POST')
 @login_required
 def apply_for_case(request, pk):
-    # Check if user is a lawyer with a lawyer profile
+    """Apply to represent a case"""
     if request.user.role != 'LAWYER' or not hasattr(request.user, 'lawyer_profile'):
         return HttpResponseForbidden("You must be a lawyer to apply for cases")
     
-    # Get the case
     case = get_object_or_404(Case, pk=pk)
     
-    # Check if case is open
     if case.status != 'open':
         messages.error(request, "This case is no longer accepting applications.")
-        return redirect('cases:browse_cases')
+        return redirect('cases:lawyer_browse_cases')
     
-    # Get lawyer profile
     lawyer_profile = request.user.lawyer_profile
     
-    # Check if lawyer has already applied
     if LawyerApplication.objects.filter(case=case, lawyer=lawyer_profile).exists():
         messages.warning(request, "You have already applied for this case.")
         return redirect('cases:case_detail_lawyer', pk=case.pk)
@@ -1022,44 +1197,37 @@ def apply_for_case(request, pk):
     if request.method == 'POST':
         form = LawyerApplicationForm(request.POST)
         if form.is_valid():
-            # Save application
-            application = form.save(commit=False)
-            application.case = case
-            application.lawyer = lawyer_profile
-            application.save()
-            
-            # Award tokens for applying
-            award_tokens(
-                user=request.user,
-                amount=10,
-                description=f"Applied for case: {case.title}",
-                case=case
-            )
-            
-            # Send email notification to NGO
-            # send_mail(
-            #     subject=f'New application for your case: {case.title}',
-            #     message=f'A lawyer has applied to represent your case "{case.title}". Login to view the application.',
-            #     from_email=settings.DEFAULT_FROM_EMAIL,
-            #     recipient_list=[case.ngo.email],
-            #     fail_silently=False,
-            # )
-            
-            # Send SMS notification to lawyer using Africa's Talking API
-            # Get phone number from user or user profile as appropriate
-            phone_number = getattr(request.user, 'phone_number', None)
-            
-            # If not found in user model, try other possible locations
-            if not phone_number and hasattr(request.user, 'profile'):
-                phone_number = getattr(request.user.profile, 'phone_number', None)
-            
-            if phone_number:
-                send_sms_notification(
-                    phone_number=phone_number,
-                    message=f"Congratulations {request.user.first_name}! You have successfully applied to case: {case.title}, "
-                            f"with bounty amount of {case.bounty_amount} and {case.milestones.count()} milestones. "
-                            f"If successful, the NGO will contact you."
+            with transaction.atomic():
+                application = form.save(commit=False)
+                application.case = case
+                application.lawyer = lawyer_profile
+                application.applied_at = timezone.now()
+                application.save()
+                
+                # Award tokens
+                award_tokens(
+                    user=request.user,
+                    amount=10,
+                    description=f"Applied for case: {case.title}",
+                    case=case
                 )
+                
+                # Notify NGO
+                send_mail(
+                    subject=f'New application for case: {case.title}',
+                    message=f'Lawyer {lawyer_profile.user.get_full_name()} has applied for your case "{case.title}". Log in to review: {request.build_absolute_uri(reverse("cases:view_applications", args=[case.pk]))}',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[case.ngo.email],
+                    fail_silently=False,
+                )
+                
+                # SMS notification to lawyer
+                phone_number = getattr(request.user, 'phone_number', None) or getattr(lawyer_profile, 'phone_number', None)
+                if phone_number:
+                    send_sms_notification(
+                        phone_number=phone_number,
+                        message=f"Congratulations {request.user.get_full_name()}! Your application for case: {case.title} has been submitted."
+                    )
             
             messages.success(request, "Your application has been submitted successfully!")
             return redirect('cases:lawyer_dashboard')
@@ -2412,94 +2580,794 @@ def award_tokens(user, amount, description, case=None):
         
         return token_transaction
     
+logger = logging.getLogger(__name__)
+
 @login_required
 def redeem_tokens(request):
-    user = request.user
-    
-    # Check if user has a wallet, create one if not
+    """Redeem tokens for HakiToken (crypto) or M-Pesa via Paystack"""
+    # Ensure wallet exists
     try:
-        wallet = user.wallet
-    except ObjectDoesNotExist:  # Use ObjectDoesNotExist instead
-        # Create a wallet for this user
-        wallet = UserWallet.objects.create(user=user)
-        # Set initial values
-        wallet.balance = 0  # or whatever default makes sense
+        wallet = request.user.wallet
+    except ObjectDoesNotExist:
+        wallet = UserWallet.objects.create(user=request.user, balance=0)
         wallet.save()
 
     if request.method == 'POST':
-        tokens = int(request.POST.get('tokens', 0))
-        reason = request.POST.get('reason')
+        form = TokenRedemptionForm(request.POST)
+        if form.is_valid():
+            tokens = form.cleaned_data['tokens']
+            method = form.cleaned_data['redemption_method']
+            eth_address = form.cleaned_data['eth_address']
+            phone_number = form.cleaned_data['phone_number']
 
-        # Basic validation
-        if tokens <= 0:
-            messages.error(request, "Please enter a valid number of tokens.")
+            # Validate token balance
+            if tokens > wallet.balance:
+                messages.error(request, "You don't have enough tokens for this redemption.")
+                return redirect('cases:lawyer_dashboard')
+
+            # Conversion rates
+            haki_amount = tokens * 10**16  # 1 token = 0.01 HAKI (18 decimals)
+            kes_amount = tokens * 10  # 1 token = 10 KES
+
+            with atomic():
+                # Deduct tokens
+                wallet.balance -= tokens
+                wallet.save()
+
+                # Record transaction
+                tx = TokenTransaction(
+                    user=request.user,
+                    amount=tokens,
+                    transaction_type='SPEND',
+                    description=f"Redemption via {method}",
+                    created_at=timezone.now()
+                )
+
+                if method == 'crypto':
+                    # Crypto redemption
+                    try:
+                        w3 = Web3(Web3.HTTPProvider('https://base-mainnet.infura.io/v3/caf5c1d788ed4936bcd4d4dda3418b52'))  # e.g., Infura, Alchemy
+                        contract_address = '0xad2c27c310622faeb35f1f4f1d535ee7d978c8fa'
+                        contract_abi =[
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "AccessControlBadConfirmation",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "neededRole",
+				"type": "bytes32"
+			}
+		],
+		"name": "AccessControlUnauthorizedAccount",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "allowance",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "needed",
+				"type": "uint256"
+			}
+		],
+		"name": "ERC20InsufficientAllowance",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "balance",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "needed",
+				"type": "uint256"
+			}
+		],
+		"name": "ERC20InsufficientBalance",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "approver",
+				"type": "address"
+			}
+		],
+		"name": "ERC20InvalidApprover",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "receiver",
+				"type": "address"
+			}
+		],
+		"name": "ERC20InvalidReceiver",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			}
+		],
+		"name": "ERC20InvalidSender",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			}
+		],
+		"name": "ERC20InvalidSpender",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Approval",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "approve",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "burn",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "burnFrom",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "grantRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "mint",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "callerConfirmation",
+				"type": "address"
+			}
+		],
+		"name": "renounceRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "revokeRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "previousAdminRole",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "newAdminRole",
+				"type": "bytes32"
+			}
+		],
+		"name": "RoleAdminChanged",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			}
+		],
+		"name": "RoleGranted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			}
+		],
+		"name": "RoleRevoked",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			}
+		],
+		"name": "allowance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "decimals",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "DEFAULT_ADMIN_ROLE",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			}
+		],
+		"name": "getRoleAdmin",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "hasRole",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MAX_SUPPLY",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MINTER_ROLE",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "remainingSupply",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes4",
+				"name": "interfaceId",
+				"type": "bytes4"
+			}
+		],
+		"name": "supportsInterface",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "symbol",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalMinted",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalSupply",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+                        contract = w3.eth.contract(address=contract_address, abi=contract_abi)
+                        sender_address = '0xcE99436a7A8384CF86494743AD76976cFB09c67D '  # Must have MINTER_ROLE
+                        sender_private_key = '1569c017ee4c1a3113a69d0235148fdbef8f1b940ec6b973979ed529c3c6c11c'
+
+                        # Build mint transaction
+                        nonce = w3.eth.get_transaction_count(sender_address)
+                        tx_data = contract.functions.mint(eth_address, haki_amount).build_transaction({
+                            'from': sender_address,
+                            'nonce': nonce,
+                            'gas': 200000,
+                            'gasPrice': w3.to_wei('20', 'gwei')
+                        })
+
+                        # Sign and send
+                        signed_tx = w3.eth.account.sign_transaction(tx_data, sender_private_key)
+                        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+                        tx.external_tx_id = tx_hash.hex()
+                        messages.success(request, f"Successfully redeemed {tokens} tokens for {haki_amount/10**18} HAKI. Tx: {tx_hash.hex()}")
+
+                    except Exception as e:
+                        logger.error(f"Crypto redemption failed: {str(e)}")
+                        messages.error(request, "Crypto redemption failed. Please try again later.")
+                        return redirect('cases:lawyer_dashboard')
+
+                elif method == 'mpesa':
+                    # M-Pesa via Paystack (bank transfer to mobile money)
+                    try:
+                        # Step 1: Create transfer recipient
+                        recipient_data = {
+                            "type": "mobile_money",
+                            "name": request.user.get_full_name() or request.user.username,
+                            "account_number": phone_number.replace('+254', '0'),  # Convert to 07xxxxxxxx
+                            "bank_code": "MPS",  # M-Pesa code for Paystack
+                            "currency": "KES"
+                        }
+                        headers = {
+                            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+                            "Content-Type": "application/json"
+                        }
+                        response = requests.post(
+                            "https://api.paystack.co/transferrecipient",
+                            json=recipient_data,
+                            headers=headers
+                        )
+                        recipient_response = response.json()
+                        if not recipient_response.get('status'):
+                            logger.error(f"Paystack recipient creation failed: {recipient_response}")
+                            messages.error(request, "Failed to create M-Pesa recipient. Please check your phone number.")
+                            return redirect('cases:lawyer_dashboard')
+
+                        recipient_code = recipient_response['data']['recipient_code']
+
+                        # Step 2: Initiate transfer
+                        transfer_data = {
+                            "source": "balance",
+                            "amount": int(kes_amount * 100),  # Paystack uses kobo (cents)
+                            "recipient": recipient_code,
+                            "reason": f"HakiChain token redemption for {tokens} tokens"
+                        }
+                        response = requests.post(
+                            "https://api.paystack.co/transfer",
+                            json=transfer_data,
+                            headers=headers
+                        )
+                        transfer_response = response.json()
+                        if transfer_response.get('status'):
+                            tx.external_tx_id = transfer_response['data']['reference']
+                            messages.success(request, f"Successfully initiated M-Pesa payment of KES {kes_amount}.")
+                        else:
+                            logger.error(f"Paystack transfer failed: {transfer_response}")
+                            messages.error(request, "M-Pesa redemption failed. Please try again.")
+                            return redirect('cases:lawyer_dashboard')
+
+                    except Exception as e:
+                        logger.error(f"Paystack redemption failed: {str(e)}")
+                        messages.error(request, "M-Pesa redemption failed. Please try again later.")
+                        return redirect('cases:lawyer_dashboard')
+
+                tx.save()
+
+                # Update wallet with redemption details
+                if method == 'crypto' and eth_address:
+                    wallet.eth_address = eth_address
+                elif method == 'mpesa' and phone_number:
+                    wallet.phone_number = phone_number
+                wallet.save()
+
             return redirect('cases:lawyer_dashboard')
+    else:
+        form = TokenRedemptionForm(initial={
+            'eth_address': wallet.eth_address,
+            'phone_number': wallet.phone_number
+        })
 
-        wallet = request.user.wallet
-        if tokens > wallet.balance:
-            messages.error(request, "You don't have enough tokens for this redemption.")
-            return redirect('cases:lawyer_dashboard')
-
-        # Deduct tokens
-        with transaction.atomic():
-            wallet.balance -= tokens
-            wallet.save()
-            # Record transaction
-            TokenTransaction.objects.create(
-                user=request.user,
-                amount=tokens,
-                transaction_type='SPEND',
-                description=f"Redeemed {tokens} tokens for {reason}"
-            )
-
-        messages.success(request, f"You've successfully redeemed {tokens} tokens!")
-        return redirect('cases:lawyer_dashboard')
-
-    return redirect('cases:lawyer_dashboard')
-
-    user = request.user
-    
-    # Check if user has a wallet, create one if not
-    try:
-        wallet = user.wallet
-    except RelatedObjectDoesNotExist:
-        # Create a wallet for this user
-        wallet = UserWallet.objects.create(user=user)
-        # You might need to set initial values
-        wallet.balance = 0  
-        wallet.save()
-    if request.method == 'POST':
-        tokens = int(request.POST.get('tokens', 0))
-        reason = request.POST.get('reason')
-
-        # Basic validation
-        if tokens <= 0:
-            messages.error(request, "Please enter a valid number of tokens.")
-            return redirect('cases:lawyer_dashboard')
-
-        wallet = request.user.wallet
-
-        if tokens > wallet.balance:
-            messages.error(request, "You don't have enough tokens for this redemption.")
-            return redirect('cases:lawyer_dashboard')
-
-        # Deduct tokens
-        with transaction.atomic():
-            wallet.balance -= tokens
-            wallet.save()
-
-            # Record transaction
-            TokenTransaction.objects.create(
-                user=request.user,
-                amount=tokens,
-                transaction_type='SPEND',
-                description=f"Redeemed {tokens} tokens for {reason}"
-            )
-
-        messages.success(request, f"You've successfully redeemed {tokens} tokens!")
-        return redirect('cases:lawyer_dashboard')
-
-    return redirect('cases:lawyer_dashboard')
+    context = {
+        'form': form,
+        'wallet_balance': wallet.balance
+    }
+    return render(request, 'cases/lawyer/redeem_tokens.html', context)
 
 @login_required
 def convert_token(request):
@@ -2574,3 +3442,339 @@ def mark_all_notifications_read(request):
     ).update(is_read=True)
     
     return JsonResponse({'success': True})
+
+@login_required
+def chat_view(request, case_pk=None):
+    case = get_object_or_404(Case, pk=case_pk) if case_pk else None
+    chat_history = ChatMessage.objects.filter(user=request.user, case=case).order_by('timestamp')[:50]
+    
+    context = {
+        'case': case,
+        'chat_history': chat_history,
+        'user_role': request.user.role,
+    }
+    return render(request, 'cases/chat.html', context)
+
+
+@login_required
+def chat_history(request):
+
+    messages = ChatMessage.objects.filter(user=request.user).order_by('timestamp')[:20]
+    messages_data = [{
+        'message': msg.message,
+        'is_user_message': msg.is_user_message,
+        'timestamp': msg.timestamp.isoformat(),
+    } for msg in messages]
+    return JsonResponse({'messages': messages_data})
+
+@login_required
+def deposit_funds(request):
+    if request.user.role != 'NGO':
+        return HttpResponseForbidden("Only NGOs can deposit funds into their wallet")
+    try:
+        wallet = request.user.wallet
+    except ObjectDoesNotExist:
+        wallet = UserWallet.objects.create(user=request.user, balance=0)
+        wallet.save()
+    if request.method == 'POST':
+        form = WalletDepositForm(request.POST)
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            payment_method = form.cleaned_data['payment_method']
+            eth_address = form.cleaned_data['eth_address']
+            phone_number = form.cleaned_data['phone_number']
+            with transaction.atomic():
+                tx = WalletTransaction(
+                    user=request.user,
+                    amount=amount,
+                    transaction_type='DEPOSIT',
+                    description=f"Deposit via {payment_method} (Pending)",
+                    payment_method=payment_method,
+                    created_at=timezone.now()
+                )
+                if payment_method == 'ETH':
+                    try:
+                        w3 = Web3(Web3.HTTPProvider('https://base-mainnet.infura.io/v3/caf5c1d788ed4936bcd4d4dda3418b52'))
+                        contract_address = '0xad2c27c310622faeb35f1f4f1d535ee7d978c8fa'
+                        contract_abi = [...]  # Replace with your contract ABI
+                        contract = w3.eth.contract(address=contract_address, abi=contract_abi)
+                        sender_address = '0xcE99436a7A8384CF86494743AD76976cFB09c67D'
+                        sender_private_key = '1569c017ee4c1a3113a69d0235148fdbef8f1b940ec6b973979ed529c3c6c11c'
+                        haki_amount = int(amount * 10**16)
+                        nonce = w3.eth.get_transaction_count(sender_address)
+                        tx_data = contract.functions.mint(eth_address, haki_amount).build_transaction({
+                            'from': sender_address,
+                            'nonce': nonce,
+                            'gas': 200000,
+                            'gasPrice': w3.to_wei('20', 'gwei')
+                        })
+                        signed_tx = w3.eth.account.sign_transaction(tx_data, sender_private_key)
+                        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+                        tx.external_tx_id = tx_hash.hex()
+                        wallet.eth_address = eth_address
+                        wallet.balance += amount  # Update balance
+                        wallet.save()
+                        messages.success(request, f"Successfully deposited {amount} KES worth of HAKI tokens. Tx: {tx_hash.hex()}")
+                    except Exception as e:
+                        logger.error(f"ETH deposit failed: {str(e)}")
+                        messages.error(request, "ETH deposit failed. Please try again later.")
+                        return redirect('cases:ngo_dashboard')
+                elif payment_method == 'MPESA':
+                    try:
+                        if phone_number.startswith('0'):
+                            phone_number = '+254' + phone_number[1:]
+                        elif not phone_number.startswith('+254'):
+                            phone_number = '+254' + phone_number.lstrip('+')
+                        headers = {
+                            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+                            "Content-Type": "application/json"
+                        }
+                        payload = {
+                            "amount": int(amount * 100),
+                            "email": request.user.email or 'ngo@example.com',
+                            "currency": "KES",
+                            "mobile_money": {
+                                "phone": phone_number,
+                                "provider": "MPESA"
+                            },
+                            "channels": ["mobile_money"]
+                        }
+                        response = requests.post(
+                            "https://api.paystack.co/charge",
+                            json=payload,
+                            headers=headers
+                        )
+                        response_data = response.json()
+                        if response_data.get('status') and response_data['data']['status'] in ['pay_offline', 'send_pin']:
+                            tx.external_tx_id = response_data['data']['reference']
+                            tx.save()
+                            request.session['paystack_reference'] = response_data['data']['reference']
+                            request.session['deposit_amount'] = float(amount)
+                            request.session['phone_number'] = phone_number
+                            messages.info(request, "Please check your phone and enter your M-Pesa PIN to complete the payment.")
+                            return redirect('cases:verify_payment')
+                        else:
+                            logger.error(f"Paystack STK Push failed: {response_data}")
+                            messages.error(request, f"M-Pesa deposit failed: {response_data.get('message', 'Unknown error')}")
+                            return redirect('cases:ngo_dashboard')
+                    except Exception as e:
+                        logger.error(f"M-Pesa STK Push failed: {str(e)}")
+                        messages.error(request, "M-Pesa deposit failed. Please check your phone number and try again.")
+                        return redirect('cases:ngo_dashboard')
+                tx.save()
+            return redirect('cases:ngo_dashboard')
+    else:
+        form = WalletDepositForm(initial={
+            'eth_address': wallet.eth_address,
+            'phone_number': wallet.phone_number
+        })
+    context = {
+        'form': form,
+        'wallet_balance': wallet.balance
+    }
+    return render(request, 'cases/ngo/deposit_funds.html', context)
+
+@login_required
+def verify_payment(request):
+    reference = request.session.get('paystack_reference')
+    amount = request.session.get('deposit_amount')
+    phone_number = request.session.get('phone_number')
+    if not reference or not amount:
+        messages.error(request, "No payment reference or amount found.")
+        return redirect('cases:ngo_dashboard')
+    if request.method == 'POST':
+        try:
+            headers = {
+                "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+                "Content-Type": "application/json"
+            }
+            response = requests.get(
+                f"https://api.paystack.co/transaction/verify/{reference}",
+                headers=headers
+            )
+            response_data = response.json()
+            if response_data.get('status') and response_data['data']['status'] == 'success':
+                amount = Decimal(response_data['data']['amount'] / 100)
+                with transaction.atomic():
+                    wallet = request.user.wallet
+                    tx = WalletTransaction.objects.get(external_tx_id=reference)
+                    wallet.balance += amount  # Update balance
+                    wallet.phone_number = phone_number
+                    wallet.save()
+                    tx.description = f"Deposit via MPESA (Completed)"
+                    tx.save()
+                for key in ['paystack_reference', 'deposit_amount', 'phone_number']:
+                    if key in request.session:
+                        del request.session[key]
+                return JsonResponse({'status': 'success', 'message': f"Successfully deposited {amount} KES via M-Pesa."})
+            elif response_data['data']['status'] in ['failed', 'abandoned']:
+                return JsonResponse({'status': 'failed', 'message': 'Payment failed or was cancelled.'})
+            else:
+                return JsonResponse({'status': 'pending', 'message': 'Payment still pending. Please complete the transaction on your phone.'})
+        except Exception as e:
+            logger.error(f"Payment verification error: {str(e)}")
+            return JsonResponse({'status': 'error', 'message': 'An error occurred during verification. Please try again.'})
+    context = {
+        'reference': reference,
+        'amount': amount,
+        'phone_number': phone_number
+    }
+    return render(request, 'cases/ngo/verify_payment.html', context)
+    """Allow NGOs to deposit funds into their wallet via ETH or M-Pesa"""
+    if request.user.role != 'NGO':
+        return HttpResponseForbidden("Only NGOs can deposit funds into their wallet")
+
+    # Ensure wallet exists
+    try:
+        wallet = request.user.wallet
+    except ObjectDoesNotExist:
+        wallet = UserWallet.objects.create(user=request.user, balance=0)
+        wallet.save()
+
+    if request.method == 'POST':
+        form = WalletDepositForm(request.POST)
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            payment_method = form.cleaned_data['payment_method']
+            eth_address = form.cleaned_data['eth_address']
+            phone_number = form.cleaned_data['phone_number']
+
+            with transaction.atomic():
+                # Record transaction
+                tx = WalletTransaction(
+                    user=request.user,
+                    amount=amount,
+                    transaction_type='DEPOSIT',
+                    description=f"Deposit via {payment_method}",
+                    payment_method=payment_method,
+                    created_at=timezone.now()
+                )
+
+                if payment_method == 'ETH':
+                    try:
+                        # Initialize Web3
+                        w3 = Web3(Web3.HTTPProvider('https://base-mainnet.infura.io/v3/caf5c1d788ed4936bcd4d4dda3418b52'))
+                        contract_address = '0xad2c27c310622faeb35f1f4f1d535ee7d978c8fa'
+                        contract_abi = [...]  # Use the same ABI as in redeem_tokens
+                        contract = w3.eth.contract(address=contract_address, abi=contract_abi)
+                        sender_address = '0xcE99436a7A8384CF86494743AD76976cFB09c67D'  # Your platform's address
+                        sender_private_key = '1569c017ee4c1a3113a69d0235148fdbef8f1b940ec6b973979ed529c3c6c11c'
+
+                        # Convert amount to HAKI tokens (1 KES = 0.01 HAKI, adjust as needed)
+                        haki_amount = int(amount * 10**16)  # Assuming 1 KES = 0.01 HAKI
+
+                        # Build transaction
+                        nonce = w3.eth.get_transaction_count(sender_address)
+                        tx_data = contract.functions.mint(eth_address, haki_amount).build_transaction({
+                            'from': sender_address,
+                            'nonce': nonce,
+                            'gas': 200000,
+                            'gasPrice': w3.to_wei('20', 'gwei')
+                        })
+
+                        # Sign and send transaction
+                        signed_tx = w3.eth.account.sign_transaction(tx_data, sender_private_key)
+                        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+                        tx.external_tx_id = tx_hash.hex()
+
+                        # Update wallet
+                        wallet.eth_address = eth_address
+                        wallet.balance += amount  # Update balance in KES
+                        wallet.save()
+
+                        messages.success(request, f"Successfully deposited {amount} KES worth of HAKI tokens. Tx: {tx_hash.hex()}")
+
+                    except Exception as e:
+                        logger.error(f"ETH deposit failed: {str(e)}")
+                        messages.error(request, "ETH deposit failed. Please try again later.")
+                        return redirect('cases:ngo_dashboard')
+
+                elif payment_method == 'MPESA':
+                    try:
+                        # Create Paystack transfer recipient
+                        recipient_data = {
+                            "type": "mobile_money",
+                            "name": request.user.get_full_name() or request.user.username,
+                            "account_number": phone_number.replace('+254', '0'),
+                            "bank_code": "MPS",
+                            "currency": "KES"
+                        }
+                        headers = {
+                            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+                            "Content-Type": "application/json"
+                        }
+                        response = requests.post(
+                            "https://api.paystack.co/transferrecipient",
+                            json=recipient_data,
+                            headers=headers
+                        )
+                        recipient_response = response.json()
+                        if not recipient_response.get('status'):
+                            logger.error(f"Paystack recipient creation failed: {recipient_response}")
+                            messages.error(request, "Failed to create M-Pesa recipient. Please check your phone number.")
+                            return redirect('cases:ngo_dashboard')
+
+                        recipient_code = recipient_response['data']['recipient_code']
+
+                        # Initiate Paystack transfer
+                        transfer_data = {
+                            "source": "balance",  # Assumes platform has funds in Paystack balance
+                            "amount": int(amount * 100),  # Paystack uses kobo
+                            "recipient": recipient_code,
+                            "reason": f"HakiChain wallet deposit for {amount} KES"
+                        }
+                        response = requests.post(
+                            "https://api.paystack.co/transfer",
+                            json=transfer_data,
+                            headers=headers
+                        )
+                        transfer_response = response.json()
+                        if transfer_response.get('status'):
+                            tx.external_tx_id = transfer_response['data']['reference']
+                            wallet.phone_number = phone_number
+                            wallet.balance += amount
+                            wallet.save()
+                            messages.success(request, f"Successfully deposited {amount} KES via M-Pesa.")
+                        else:
+                            logger.error(f"Paystack transfer failed: {transfer_response}")
+                            messages.error(request, "M-Pesa deposit failed. Please try again.")
+                            return redirect('cases:ngo_dashboard')
+
+                    except Exception as e:
+                        logger.error(f"M-Pesa deposit failed: {str(e)}")
+                        messages.error(request, "M-Pesa deposit failed. Please try again later.")
+                        return redirect('cases:ngo_dashboard')
+
+                tx.save()
+
+            return redirect('cases:ngo_dashboard')
+    else:
+        form = WalletDepositForm(initial={
+            'eth_address': wallet.eth_address,
+            'phone_number': wallet.phone_number
+        })
+
+    context = {
+        'form': form,
+        'wallet_balance': wallet.balance
+    }
+    return render(request, 'cases/ngo/deposit_funds.html', context)
+
+
+@login_required
+def check_transaction_status(request):
+    """Check the status of a transaction by transaction_id"""
+    transaction_id = request.GET.get('transaction_id')
+    if not transaction_id:
+        return JsonResponse({'status': 'error', 'message': 'Transaction ID not provided'}, status=400)
+
+    try:
+        tx = WalletTransaction.objects.get(transaction_id=transaction_id, user=request.user)
+        if 'Completed' in tx.description:
+            return JsonResponse({'status': 'success', 'message': 'Payment Successful'})
+        elif 'Failed' in tx.description:
+            return JsonResponse({'status': 'failed', 'message': 'Payment Failed'})
+        else:
+            return JsonResponse({'status': 'pending', 'message': 'Payment still pending'})
+    except WalletTransaction.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Transaction not found'}, status=404)

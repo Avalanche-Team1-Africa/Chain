@@ -2,7 +2,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from accounts.models import NGOProfile, LawyerProfile
-from cases.models import Case, CaseCategory
+from cases.models import Case, CaseCategory,UserWallet,TokenTransaction
+from cases.utils import award_tokens
 
 User = get_user_model()
 
@@ -81,3 +82,18 @@ class CaseCreationAndVisibilityTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertNotIn(case, response.context['cases'])
+
+
+
+class TokenSystemTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.case = Case.objects.create(title='Test Case', ngo=self.user)
+
+    def test_award_tokens(self):
+        award_tokens(self.user, 50, 'Test action', self.case)
+        wallet = UserWallet.objects.get(user=self.user)
+        self.assertEqual(wallet.balance, 50)
+        transaction = TokenTransaction.objects.get(user=self.user)
+        self.assertEqual(transaction.amount, 50)
+        self.assertEqual(transaction.description, 'Test action')

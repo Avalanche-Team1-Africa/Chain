@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 
 {% block title %}Browse Legal Cases{% endblock %}
@@ -6,6 +5,11 @@
 {% block content %}
 <div class="container">
     <h1 class="mb-4">Browse Legal Bounties</h1>
+
+    <!-- Dashboard Button -->
+    <div class="mb-4 text-right">
+        <a href="{% url 'cases:lawyer_dashboard' %}" class="btn btn-success"><i class="fas fa-tachometer-alt"></i> Lawyer Dashboard</a>
+    </div>
 
     <!-- Filters -->
     <div class="card mb-4">

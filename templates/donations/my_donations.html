@@ -1,4 +1,3 @@
-<!-- donations/templates/donations/my_donations.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,80 +5,208 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Donations</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
+        :root {
+            --primary: #00A3E0; /* Ocean Blue */
+            --secondary: #D4AF37; /* Gold */
+            --light-gray: #f9fafb;
+            --gray: #6b7280;
+            --dark: #111827;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            color: #008bbf;
+            transform: translateX(-4px);
+        }
+
+        .back-icon {
+            margin-right: 0.5rem;
+        }
+
         .container {
             max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #ffffff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            margin: 2rem auto;
+            background-color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
         }
+
         h1 {
             text-align: center;
-            color: #333333;
-            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
         }
+
         ul {
             list-style: none;
             padding: 0;
         }
+
         li {
-            background-color: #f4f4f4;
-            margin-bottom: 10px;
-            padding: 15px;
-            border-radius: 5px;
+            background-color: #f9fbfc;
+            margin-bottom: 1rem;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            border-left: 4px solid var(--primary);
         }
-        li strong {
-            font-size: 18px;
-            color: #007bff;
+
+        li:hover {
+            background-color: #f3f9ff;
+            transform: translateY(-2px);
         }
-        li small {
-            font-size: 14px;
-            color: #6c757d;
+
+        .donation-info {
+            flex: 1;
+            min-width: 200px;
         }
-        li span.anonymous {
-            font-size: 14px;
-            color: #dc3545;
-            margin-left: 10px;
+
+        .donation-info strong {
+            display: block;
+            font-size: 1.125rem;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
         }
-        p.no-donations {
+
+        .anonymous-tag {
+            font-size: 0.875rem;
+            color: var(--secondary);
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .donation-meta {
+            flex: 1;
+            min-width: 180px;
+            text-align: right;
+        }
+
+        .donation-meta span {
+            display: block;
+            font-size: 1.125rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .donation-meta small {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .no-donations {
             text-align: center;
-            color: #6c757d;
-            font-size: 18px;
+            font-size: 1.25rem;
+            color: var(--gray);
+            padding: 3rem 0;
+        }
+
+        .floating-back-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .floating-back-btn:hover {
+            background-color: #b88d29;
+            transform: translateY(-4px);
+        }
+
+        @media (max-width: 600px) {
+            .donation-info,
+            .donation-meta {
+                text-align: left;
+                min-width: 100%;
+            }
+
+            .donation-meta {
+                margin-top: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>My Donations</h1>
 
-        {% if donations %}
-        <ul>
-            {% for donation in donations %}
-            <li>
-                <div>
-                    <strong>{{ donation.case.title }}</strong>
-                    <span class="anonymous">{% if donation.is_anonymous %}(Anonymous){% endif %}</span>
-                </div>
-                <div>
-                    <span>${{ donation.amount }}</span>
-                    <small>{{ donation.created_at|date:"M d, Y" }}</small>
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p class="no-donations">You have not made any donations yet.</p>
-        {% endif %}
-    </div>
+<a href="{% url 'donations:browse_cases' %}" class="back-button">
+    <svg class="back-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Back to Cases
+</a>
+
+<div class="container">
+    <h1>My Donations</h1>
+
+    {% if donations %}
+    <ul>
+        {% for donation in donations %}
+        <li>
+            <div class="donation-info">
+                <strong>{{ donation.case.title }}</strong>
+                {% if donation.is_anonymous %}
+                <span class="anonymous-tag">(Anonymous)</span>
+                {% endif %}
+            </div>
+            <div class="donation-meta">
+                <span>${{ donation.amount }}</span>
+                <small>{{ donation.created_at|date:"M j, Y" }}</small>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="no-donations">You have not made any donations yet.</p>
+    {% endif %}
+</div>
+
+<!-- Floating back button -->
+<a href="{% url 'donations:browse_cases' %}" class="floating-back-btn" title="Back to cases">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 12H5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 19L5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+</a>
+
 </body>
 </html>

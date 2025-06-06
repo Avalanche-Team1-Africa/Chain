@@ -6,8 +6,9 @@
     <title>Browse Donation Cases</title>
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
+            --primary: #00A3E0; /* Ocean Blue */
+            --primary-hover: #008bbf;
+            --secondary: #D4AF37; /* Gold */
             --dark: #1f2937;
             --gray: #6b7280;
             --light-gray: #f3f4f6;
@@ -29,21 +30,19 @@
             line-height: 1.6;
             color: var(--dark);
             background-color: #f9fafb;
-            padding: 0;
-            margin: 0;
         }
 
         header {
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            background: linear-gradient(135deg, var(--primary), #007fa9);
             color: white;
             padding: 2rem 0;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         header h1 {
             font-size: 2.5rem;
-            font-weight: 700;
+            font-weight: 800;
             letter-spacing: -0.025em;
         }
 
@@ -53,12 +52,29 @@
             padding: 2rem;
         }
 
+        .back-button {
+            display: inline-block;
+            margin: 1rem 0;
+            padding: 0.6rem 1.2rem;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #b88d29;
+        }
+
         .filter-form {
             background: white;
             border-radius: 12px;
             padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
             display: flex;
             flex-wrap: wrap;
             gap: 1.5rem;
@@ -92,7 +108,7 @@
         select:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+            box-shadow: 0 0 0 3px rgba(0, 163, 224, 0.15);
         }
 
         button {
@@ -122,13 +138,13 @@
             background: white;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             transition: transform 0.3s, box-shadow 0.3s;
         }
 
         .case-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
         }
 
         .case-header {
@@ -183,7 +199,7 @@
 
         .donate-btn {
             display: inline-block;
-            background: var(--primary);
+            background: var(--secondary);
             color: white;
             border: none;
             border-radius: 8px;
@@ -196,7 +212,7 @@
         }
 
         .donate-btn:hover {
-            background: var(--primary-hover);
+            background: #b88d29;
         }
 
         .amount-raised {
@@ -215,22 +231,22 @@
         }
 
         .urgency-low {
-            background: #dbeafe;
-            color: #1e40af;
+            background: #cceeff;
+            color: #006aa3;
         }
 
         .urgency-medium {
-            background: #fef3c7;
-            color: #92400e;
+            background: #fff3cc;
+            color: #a8741a;
         }
 
         .urgency-high {
-            background: #fee2e2;
-            color: #b91c1c;
+            background: #ffe2e2;
+            color: #a81c1c;
         }
 
         .urgency-critical {
-            background: #ef4444;
+            background: #d43737;
             color: white;
         }
 
@@ -252,7 +268,7 @@
             color: var(--dark);
             text-decoration: none;
             font-weight: 600;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
             transition: background-color 0.2s;
         }
 
@@ -277,7 +293,7 @@
             padding: 5rem 2rem;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .empty-state p {
@@ -291,11 +307,9 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-
             .cases {
                 grid-template-columns: 1fr;
             }
-
             .pagination {
                 flex-wrap: wrap;
             }
@@ -303,79 +317,86 @@
     </style>
 </head>
 <body>
+
+<div class="container">
+    <button class="back-button" onclick="window.history.back()">← Back</button>
+
     <header>
-        <div class="container">
-            <h1>Donation Hub</h1>
-        </div>
+        <h1>Donation Hub</h1>
     </header>
-    <div class="container">
-        <h1>Browse Cases</h1>
-        <form method="get" class="filter-form">
-            <div class="form-group">
-                <label for="category">Category:</label>
-                <select id="category" name="category">
-                    <option value="">All Categories</option>
-                    {% for category in categories %}
-                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
-                        {{ category.name }}
-                    </option>
-                    {% endfor %}
-                </select>
+
+    <h1>Browse Cases</h1>
+
+    <form method="get" class="filter-form">
+        <div class="form-group">
+            <label for="category">Category:</label>
+            <select id="category" name="category">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="urgency">Urgency Level:</label>
+            <select id="urgency" name="urgency">
+                <option value="">All Levels</option>
+                <option value="low" {% if urgency_filter == "low" %}selected{% endif %}>Low</option>
+                <option value="medium" {% if urgency_filter == "medium" %}selected{% endif %}>Medium</option>
+                <option value="high" {% if urgency_filter == "high" %}selected{% endif %}>High</option>
+                <option value="critical" {% if urgency_filter == "critical" %}selected{% endif %}>Critical</option>
+            </select>
+        </div>
+        <button type="submit">Apply Filters</button>
+    </form>
+
+    {% if page_obj %}
+    <div class="cases">
+        {% for case in page_obj %}
+        <div class="case-card">
+            <div class="case-header">
+                <span class="urgency urgency-{{ case.urgency|default:'medium' }}">{{ case.urgency|default:'Medium' }}</span>
+                <h2 class="case-title">{{ case.title }}</h2>
             </div>
-            <div class="form-group">
-                <label for="urgency">Urgency Level:</label>
-                <select id="urgency" name="urgency">
-                    <option value="">All Levels</option>
-                    <option value="low" {% if urgency_filter == "low" %}selected{% endif %}>Low</option>
-                    <option value="medium" {% if urgency_filter == "medium" %}selected{% endif %}>Medium</option>
-                    <option value="high" {% if urgency_filter == "high" %}selected{% endif %}>High</option>
-                    <option value="critical" {% if urgency_filter == "critical" %}selected{% endif %}>Critical</option>
-                </select>
-            </div>
-            <button type="submit">Apply Filters</button>
-        </form>
-        {% if page_obj %}
-        <div class="cases">
-            {% for case in page_obj %}
-            <div class="case-card">
-                <div class="case-header">
-                    <span class="urgency urgency-{{ case.urgency|default:'medium' }}">{{ case.urgency|default:'Medium' }}</span>
-                    <h2 class="case-title">{{ case.title }}</h2>
-                </div>
-                <div class="case-body">
-                    <p class="case-description">{{ case.description }}</p>
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: {{ case.progress_percentage }}%;"></div>
-                    </div>
-                </div>
-                <div class="case-footer">
-                    <div class="amount-raised">${{ case.total_donations }}</div>
-                    <a href="{% url 'donations:donate_to_case' case.pk %}" class="donate-btn">Donate Now</a>
+            <div class="case-body">
+                <p class="case-description">{{ case.description }}</p>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: {{ case.progress_percentage }}%;"></div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
-        <div class="pagination">
-            {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if urgency_filter %}&urgency={{ urgency_filter }}{% endif %}">
-                &laquo;
-            </a>
-            {% endif %}
-            <div class="pagination-info">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            <div class="case-footer">
+                <div class="amount-raised">${{ case.total_donations }}</div>
+                <a href="{% url 'donations:donate_to_case' case.pk %}" class="donate-btn">Donate Now</a>
             </div>
-            {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if urgency_filter %}&urgency={{ urgency_filter }}{% endif %}">
-                &raquo;
-            </a>
-            {% endif %}
         </div>
-        {% else %}
-        <div class="empty-state">
-            <p>No cases are available with the selected filters.</p>
-            <a href="?" class="donate-btn">Clear Filters</a>
+        {% endfor %}
+    </div>
+
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if urgency_filter %}&urgency={{ urgency_filter }}{% endif %}">
+            &laquo;
+        </a>
+        {% endif %}
+        <div class="pagination-info">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
         </div>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if urgency_filter %}&urgency={{ urgency_filter }}{% endif %}">
+            &raquo;
+        </a>
         {% endif %}
     </div>
+
+    {% else %}
+    <div class="empty-state">
+        <p>No cases are available with the selected filters.</p>
+        <a href="?" class="donate-btn">Clear Filters</a>
+    </div>
+    {% endif %}
+</div>
+
 </body>
 </html>

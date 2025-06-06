@@ -1,0 +1,20 @@
+<div class="bg-white p-5 rounded-lg shadow text-center transform hover:scale-105 transition">
+    <h3 class="text-sm uppercase text-gray-500">Total Cases</h3>
+    <p class="text-3xl font-semibold">{{ case_stats.total_cases }}</p>
+</div>
+<div class="bg-white p-5 rounded-lg shadow text-center">
+    <h3 class="text-sm uppercase text-gray-500">Open Cases</h3>
+    <p class="text-3xl font-semibold">{{ case_stats.open_cases }}</p>
+</div>
+<div class="bg-white p-5 rounded-lg shadow text-center">
+    <h3 class="text-sm uppercase text-gray-500">In Progress</h3>
+    <p class="text-3xl font-semibold">{{ case_stats.in_progress_cases }}</p>
+</div>
+<div class="bg-white p-5 rounded-lg shadow text-center">
+    <h3 class="text-sm uppercase text-gray-500">Completed</h3>
+    <p class="text-3xl font-semibold">{{ case_stats.completed_cases }}</p>
+</div>
+<div class="bg-white p-5 rounded-lg shadow text-center">
+    <h3 class="text-sm uppercase text-gray-500">Success Rate</h3>
+    <p class="text-3xl font-semibold">{{ case_stats.success_rate|floatformat:1 }}%</p>
+</div>

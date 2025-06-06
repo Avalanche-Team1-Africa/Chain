@@ -1,21 +1,30 @@
 {% extends "base.html" %}
-
 {% block title %}Case Details - HakiChain{% endblock %}
-
 {% block content %}
 <div class="container mx-auto p-4">
     <!-- Back Button -->
     <div class="mb-4">
-        <a href="{% url 'cases:browse_cases' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'cases:lawyer_browse_cases' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i> Back to Available Cases
         </a>
     </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <!-- Case Header -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <h2 class="mb-0">{{ case.title }}</h2>
-            <span class="badge {% if case.status == 'OPEN' %}bg-success{% elif case.status == 'IN_PROGRESS' %}bg-warning{% elif case.status == 'COMPLETED' %}bg-info{% else %}bg-secondary{% endif %}">
+            <span class="badge {% if case.status == 'open' %}bg-success{% elif case.status == 'in_progress' %}bg-warning{% elif case.status == 'completed' %}bg-info{% elif case.status == 'review' %}bg-primary{% else %}bg-secondary{% endif %}">
                 {{ case.get_status_display }}
             </span>
         </div>
@@ -23,14 +32,12 @@
             <!-- Case Details -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <p><strong>Category:</strong> {{ case.get_category_display }}</p>
-                    <p><strong>Location:</strong> {{ case.location }}</p>
-                    <p><strong>NGO:</strong> {{ case.ngo.organization_name }}</p>
+                    <p><strong>Category:</strong> {{ case.category.name|default:"N/A" }}</p>
+                    <p><strong>NGO:</strong> {{ case.ngo.organization_name|default:case.ngo.email }}</p>
                 </div>
                 <div class="col-md-6">
                     <p><strong>Created:</strong> {{ case.created_at|date:"F j, Y" }}</p>
-                    <p><strong>Required Expertise:</strong> {{ case.required_expertise }}</p>
-                    <p><strong>Target Completion:</strong> {{ case.target_completion_date|date:"F j, Y" }}</p>
+                    <p><strong>Bounty Amount:</strong> {{ case.bounty_amount|default:"N/A" }}</p>
                 </div>
             </div>
 
@@ -38,105 +45,150 @@
             <div class="mb-4">
                 <h4>Case Description</h4>
                 <div class="border rounded p-3 bg-light">
-                    {{ case.description|linebreaks }}
+                    {{ case.description|linebreaks|default:"No description provided." }}
                 </div>
             </div>
 
             <!-- Milestones -->
-            {% if case.milestones.all %}
-            <div class="mb-4">
-                <h4>Case Milestones</h4>
-                <ul class="list-group">
-                    {% for milestone in case.milestones.all %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        {{ milestone.description }}
-                        <span class="badge {% if milestone.is_completed %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
-                            {% if milestone.is_completed %}Completed{% else %}Pending{% endif %}
-                        </span>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
+            {% if milestones %}
+                <div class="mb-4">
+                    <h4>Case Milestones</h4>
+                    <ul class="list-group">
+                        {% for milestone in milestones %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ milestone.description|default:"No description" }}
+                                <span class="badge {% if milestone.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                                    {{ milestone.get_status_display|default:"Pending" }}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-4">No milestones available.</div>
             {% endif %}
 
             <!-- Documents -->
-            {% if case.documents.all %}
-            <div class="mb-4">
-                <h4>Case Documents</h4>
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Document Name</th>
-                                <th>Type</th>
-                                <th>Uploaded On</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for doc in case.documents.all %}
-                            <tr>
-                                <td>{{ doc.title }}</td>
-                                <td>{{ doc.get_document_type_display }}</td>
-                                <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
-                                <td>
-                                    <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                        <i class="fas fa-download me-1"></i> Download
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            {% if documents %}
+                <div class="mb-4">
+                    <h4>Case Documents</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Document Name</th>
+                                    <th>Uploaded On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc in documents %}
+                                    <tr>
+                                        <td>{{ doc.title|default:"Untitled Document" }}</td>
+                                        <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'cases:download_document' document_id=doc.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download me-1"></i> Download
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            {% else %}
+                <div class="alert alert-info mb-4">No documents available.</div>
             {% endif %}
 
             <!-- Updates -->
             <div class="mb-4">
                 <h4>Case Updates</h4>
-                {% if case.updates.all %}
-                <div class="timeline">
-                    {% for update in case.updates.all %}
-                    <div class="card mb-3 border-left-primary">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <h5 class="card-title">{{ update.title }}</h5>
-                                <small class="text-muted">{{ update.created_at|date:"M d, Y" }}</small>
+                {% if updates %}
+                    <div class="list-group">
+                        {% for update in updates %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <h5 class="mb-1">{{ update.content|truncatewords:10 }}</h5>
+                                    <small class="text-muted">{{ update.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="mb-1">{{ update.content|linebreaks }}</p>
+                                <small class="text-muted">By {{ update.created_by.get_full_name|default:update.created_by.email|default:"System" }}</small>
                             </div>
-                            <p class="card-text">{{ update.content }}</p>
-                            <p class="card-text"><small class="text-muted">By {{ update.author.get_full_name|default:update.author.email }}</small></p>
-                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
                 {% else %}
-                <div class="alert alert-info">No updates have been posted yet.</div>
+                    <div class="alert alert-info">No updates have been posted yet.</div>
                 {% endif %}
             </div>
 
             <!-- Chat Link -->
             {% if is_assigned %}
-            <div class="text-center mt-4">
-                <a href="{% url 'chat:case_chat' case.pk %}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                    Open Chat
-                </a>
-            </div>
+                <div class="text-center mt-4">
+                    <a href="{% url 'chat:case_chat' case.pk %}" class="btn btn-primary">
+                        <i class="fas fa-comments me-2"></i> Open Chat
+                    </a>
+                </div>
             {% endif %}
 
             <!-- Apply or Application Status -->
-            {% if case.status == 'OPEN' and not has_applied %}
-            <div class="text-center mt-4">
-                <a href="{% url 'cases:apply_for_case' pk=case.id %}" class="btn btn-lg btn-primary">
-                    <i class="fas fa-gavel me-2"></i> Apply to Take This Case
-                </a>
-            </div>
+            {% if case.status == 'open' and not has_applied %}
+                <div class="text-center mt-4">
+                    <a href="{% url 'cases:apply_for_case' pk=case.pk %}" class="btn btn-lg btn-primary">
+                        <i class="fas fa-gavel me-2"></i> Apply to Take This Case
+                    </a>
+                </div>
             {% elif has_applied %}
-            <div class="alert alert-info text-center">
-                <i class="fas fa-info-circle me-2"></i> You have already applied for this case. The NGO will contact you if selected.
-            </div>
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i> You have already applied for this case. The NGO will contact you if selected.
+                </div>
+            {% elif is_assigned %}
+                <div class="text-center mt-4">
+                    <a href="{% url 'cases:submit_progress' case_pk=case.pk %}" class="btn btn-primary">Submit Progress</a>
+                    {% if case.status in 'in_progress,assigned' %}
+                        <a href="{% url 'cases:submit_case_completion' case_pk=case.pk %}" class="btn btn-success">Submit Completion</a>
+                    {% endif %}
+                </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<style>
+    body {
+        background-color: #F5F6F5;
+    }
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .btn-primary, .btn-success {
+        background-color: #1E88E5; /* Ocean Blue */
+        border-color: #1E88E5;
+    }
+    .btn-primary:hover, .btn-success:hover {
+        background-color: #1565C0;
+        border-color: #1565C0;
+    }
+    .btn-outline-primary, .btn-outline-secondary {
+        color: #1E88E5;
+        border-color: #1E88E5;
+    }
+    .btn-outline-primary:hover, .btn-outline-secondary:hover {
+        background-color: #1E88E5;
+        color: #FFFFFF;
+    }
+    .alert-success {
+        background-color: #FFD700; /* Gold */
+        color: #333;
+        border-color: #FFD700;
+    }
+    .badge {
+        font-size: 0.9em;
+    }
+    .list-group-item {
+        border-left: 4px solid #1E88E5;
+        margin-bottom: 10px;
+    }
+</style>
 {% endblock %}

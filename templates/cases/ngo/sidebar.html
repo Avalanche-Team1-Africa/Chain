@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div id="sidebar" class="bg-gray-800 text-white h-screen fixed left-0 top-0 overflow-y-auto transition-all duration-300 w-64">
+        <!-- Toggle Button -->
+        <div class="flex justify-end p-4">
+            <button id="toggleSidebar" class="text-gray-300 hover:text-white focus:outline-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Logo and Brand -->
+        <div class="p-4 text-center border-b border-gray-700">
+            <h3 class="text-xl font-bold">HakiChain</h3>
+            <small class="text-gray-400">NGO Dashboard</small>
+        </div>
+
+        <!-- User Profile Summary -->
+        <div class="p-4 text-center border-b border-gray-700">
+            <div class="w-16 h-16 rounded-full bg-blue-500 mx-auto flex items-center justify-center">
+                <i class="fas fa-user text-2xl"></i>
+            </div>
+            <h5 class="mt-2 text-sm font-medium">{{ request.user.get_full_name }}</h5>
+            <span class="text-xs text-gray-400">{{ request.user.email }}</span>
+        </div>
+
+        <!-- Navigation Links -->
+        <ul class="p-0 m-0 list-none">
+            <!-- Dashboard Home -->
+            <li>
+                <a href="{% url 'cases:ngo_dashboard' %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'ngo_dashboard' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Case Management Section -->
+            <li class="mt-2">
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">
+                    Case Management
+                </div>
+            </li>
+
+            <!-- List Cases -->
+            <li>
+                <a href="{% url 'cases:list_cases' %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'list_cases' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-folder w-5 mr-3"></i>
+                    <span class="sidebar-text">My Cases</span>
+                </a>
+            </li>
+
+            <!-- Create Case -->
+            <li>
+                <a href="{% url 'cases:case_create' %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'case_create' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-plus-circle w-5 mr-3"></i>
+                    <span class="sidebar-text">Create Case</span>
+                </a>
+            </li>
+
+            <!-- Case Details (if applicable) -->
+            {% if case %}
+            <li>
+                <a href="{% url 'cases:case_detail' pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'case_detail' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-info-circle w-5 mr-3"></i>
+                    <span class="sidebar-text">Case Details</span>
+                </a>
+            </li>
+
+            <!-- Case History -->
+            <li>
+                <a href="{% url 'cases:case_history' pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'case_history' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-history w-5 mr-3"></i>
+                    <span class="sidebar-text">Case History</span>
+                </a>
+            </li>
+
+            <!-- Case Updates -->
+            <li>
+                <a href="{% url 'cases:case_updates' pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'case_updates' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-bell w-5 mr-3"></i>
+                    <span class="sidebar-text">Case Updates</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Lawyer Section -->
+            <li class="mt-2">
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">
+                    Lawyer Management
+                </div>
+            </li>
+
+            <!-- Applications -->
+            {% if case %}
+            <li>
+                <a href="{% url 'cases:view_applications' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'view_applications' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-user-check w-5 mr-3"></i>
+                    <span class="sidebar-text">View Applications</span>
+                </a>
+            </li>
+
+            <!-- Invite Lawyers -->
+            <li>
+                <a href="{% url 'cases:invite_lawyers' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'invite_lawyers' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-user-plus w-5 mr-3"></i>
+                    <span class="sidebar-text">Invite Lawyers</span>
+                </a>
+            </li>
+
+            <!-- Rate Lawyer -->
+            <li>
+                <a href="{% url 'cases:rate_lawyer' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'rate_lawyer' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-star w-5 mr-3"></i>
+                    <span class="sidebar-text">Rate Lawyer</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Case Progress Section -->
+            <li class="mt-2">
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">
+                    Case Progress
+                </div>
+            </li>
+
+            <!-- Set Milestones -->
+            {% if case %}
+            <li>
+                <a href="{% url 'cases:set_milestones' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'set_milestones' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-flag w-5 mr-3"></i>
+                    <span class="sidebar-text">Set Milestones</span>
+                </a>
+            </li>
+
+            <!-- Add Update -->
+            <li>
+                <a href="{% url 'cases:add_update' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'add_update' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-comment-medical w-5 mr-3"></i>
+                    <span class="sidebar-text">Add Update</span>
+                </a>
+            </li>
+
+            <!-- Upload Document -->
+            <li>
+                <a href="{% url 'cases:upload_document' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'upload_document' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-file-upload w-5 mr-3"></i>
+                    <span class="sidebar-text">Upload Document</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Financial Section -->
+            <li class="mt-2">
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">
+                    Financial
+                </div>
+            </li>
+
+            <!-- Funding History -->
+            {% if case %}
+            <li>
+                <a href="{% url 'cases:funding_history' pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'funding_history' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-money-bill-wave w-5 mr-3"></i>
+                    <span class="sidebar-text">Funding History</span>
+                </a>
+            </li>
+
+            <!-- View Donations -->
+            <li>
+                <a href="{% url 'cases:view_donations' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'view_donations' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-hand-holding-usd w-5 mr-3"></i>
+                    <span class="sidebar-text">View Donations</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Profile & Settings -->
+            <li class="mt-2">
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">
+                    Account
+                </div>
+            </li>
+
+            <!-- Profile -->
+            <li>
+                <a href="{% url 'accounts:ngo_profile' %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'ngo_profile' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-id-card w-5 mr-3"></i>
+                    <span class="sidebar-text">Profile</span>
+                </a>
+            </li>
+
+            <!-- Settings -->
+            <li>
+                <a href="{% url 'accounts:settings' %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'settings' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-cog w-5 mr-3"></i>
+                    <span class="sidebar-text">Settings</span>
+                </a>
+            </li>
+
+            <!-- Log Out -->
+            <li class="mt-6 border-t border-gray-700 pt-2">
+                <a href="{% url 'accounts:logout' %}" class="flex items-center p-3 text-red-400 hover:bg-gray-700 hover:text-red-300 transition-all duration-200 border-l-4 border-transparent">
+                    <i class="fas fa-sign-out-alt w-5 mr-3"></i>
+                    <span class="sidebar-text">Log Out</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        const toggleSidebar = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarTexts = document.querySelectorAll('.sidebar-text');
+
+        toggleSidebar.addEventListener('click', () => {
+            sidebar.classList.toggle('w-64');
+            sidebar.classList.toggle('w-16');
+            sidebarTexts.forEach(text => {
+                text.classList.toggle('hidden');
+            });
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div id="sidebar" class="bg-gray-800 text-white h-screen fixed left-0 top-0 overflow-y-auto transition-all duration-300 w-64">
+        <!-- Toggle Button -->
+        <div class="flex justify-end p-4">
+            <button id="toggleSidebar" class="text-gray-300 hover:text-white focus:outline-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Logo and Brand -->
+        <div class="p-4 text-center border-b border-gray-700">
+            <h3 class="text-xl font-bold">HakiChain</h3>
+            <small class="text-gray-400">NGO Dashboard</small>
+        </div>
+
+        <!-- User Profile Summary -->
+        <div class="p-4 text-center border-b border-gray-700">
+            <div class="w-16 h-16 rounded-full bg-blue-500 mx-auto flex items-center justify-center">
+                <i class="fas fa-user text-2xl"></i>
+            </div>
+            <h5 class="mt-2 text-sm font-medium">{{ request.user.get_full_name }}</h5>
+            <span class="text-xs text-gray-400">{{ request.user.email }}</span>
+        </div>
+
+        <!-- Navigation Links -->
+        <ul class="p-0 m-0 list-none">
+            <!-- Dashboard Home -->
+            <li>
+                <a href="{% url 'cases:ngo_dashboard' %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'ngo_dashboard' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Case Management Section -->
+            <li class="mt-2">
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">
+                    Case Management
+                </div>
+            </li>
+
+            <!-- List Cases -->
+            <li>
+                <a href="{% url 'cases:list_cases' %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'list_cases' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-folder w-5 mr-3"></i>
+                    <span class="sidebar-text">My Cases</span>
+                </a>
+            </li>
+
+            <!-- Create Case -->
+            <li>
+                <a href="{% url 'cases:case_create' %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'case_create' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-plus-circle w-5 mr-3"></i>
+                    <span class="sidebar-text">Create Case</span>
+                </a>
+            </li>
+
+            <!-- Case Details (if applicable) -->
+            {% if case %}
+            <li>
+                <a href="{% url 'cases:case_detail' pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'case_detail' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-info-circle w-5 mr-3"></i>
+                    <span class="sidebar-text">Case Details</span>
+                </a>
+            </li>
+
+            <!-- Case History -->
+            <li>
+                <a href="{% url 'cases:case_history' pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'case_history' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-history w-5 mr-3"></i>
+                    <span class="sidebar-text">Case History</span>
+                </a>
+            </li>
+
+            <!-- Case Updates -->
+            <li>
+                <a href="{% url 'cases:case_updates' pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'case_updates' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-bell w-5 mr-3"></i>
+                    <span class="sidebar-text">Case Updates</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Lawyer Section -->
+            <li class="mt-2">
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">
+                    Lawyer Management
+                </div>
+            </li>
+
+            <!-- Applications -->
+            {% if case %}
+            <li>
+                <a href="{% url 'cases:view_applications' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'view_applications' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-user-check w-5 mr-3"></i>
+                    <span class="sidebar-text">View Applications</span>
+                </a>
+            </li>
+
+            <!-- Invite Lawyers -->
+            <li>
+                <a href="{% url 'cases:invite_lawyers' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'invite_lawyers' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-user-plus w-5 mr-3"></i>
+                    <span class="sidebar-text">Invite Lawyers</span>
+                </a>
+            </li>
+
+            <!-- Rate Lawyer -->
+            <li>
+                <a href="{% url 'cases:rate_lawyer' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'rate_lawyer' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-star w-5 mr-3"></i>
+                    <span class="sidebar-text">Rate Lawyer</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Case Progress Section -->
+            <li class="mt-2">
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">
+                    Case Progress
+                </div>
+            </li>
+
+            <!-- Set Milestones -->
+            {% if case %}
+            <li>
+                <a href="{% url 'cases:set_milestones' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'set_milestones' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-flag w-5 mr-3"></i>
+                    <span class="sidebar-text">Set Milestones</span>
+                </a>
+            </li>
+
+            <!-- Add Update -->
+            <li>
+                <a href="{% url 'cases:add_update' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'add_update' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-comment-medical w-5 mr-3"></i>
+                    <span class="sidebar-text">Add Update</span>
+                </a>
+            </li>
+
+            <!-- Upload Document -->
+            <li>
+                <a href="{% url 'cases:upload_document' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'upload_document' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-file-upload w-5 mr-3"></i>
+                    <span class="sidebar-text">Upload Document</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Financial Section -->
+            <li class="mt-2">
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">
+                    Financial
+                </div>
+            </li>
+
+            <!-- Funding History -->
+            {% if case %}
+            <li>
+                <a href="{% url 'cases:funding_history' pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'funding_history' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-money-bill-wave w-5 mr-3"></i>
+                    <span class="sidebar-text">Funding History</span>
+                </a>
+            </li>
+
+            <!-- View Donations -->
+            <li>
+                <a href="{% url 'cases:view_donations' case_pk=case.pk %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'view_donations' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-hand-holding-usd w-5 mr-3"></i>
+                    <span class="sidebar-text">View Donations</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Profile & Settings -->
+            <li class="mt-2">
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">
+                    Account
+                </div>
+            </li>
+
+            <!-- Profile -->
+            <li>
+                <a href="{% url 'accounts:ngo_profile' %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'ngo_profile' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-id-card w-5 mr-3"></i>
+                    <span class="sidebar-text">Profile</span>
+                </a>
+            </li>
+
+            <!-- Settings -->
+            <li>
+                <a href="{% url 'accounts:settings' %}" class="flex items-center p-3 text-gray-200 hover:bg-gray-700 hover:text-white transition-all duration-200 border-l-4 border-transparent {% if request.resolver_match.url_name == 'settings' %} bg-gray-700 border-blue-500 {% endif %}">
+                    <i class="fas fa-cog w-5 mr-3"></i>
+                    <span class="sidebar-text">Settings</span>
+                </a>
+            </li>
+
+            <!-- Log Out -->
+            <li class="mt-6 border-t border-gray-700 pt-2">
+                <a href="{% url 'accounts:logout' %}" class="flex items-center p-3 text-red-400 hover:bg-gray-700 hover:text-red-300 transition-all duration-200 border-l-4 border-transparent">
+                    <i class="fas fa-sign-out-alt w-5 mr-3"></i>
+                    <span class="sidebar-text">Log Out</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        const toggleSidebar = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarTexts = document.querySelectorAll('.sidebar-text');
+
+        toggleSidebar.addEventListener('click', () => {
+            sidebar.classList.toggle('w-64');
+            sidebar.classList.toggle('w-16');
+            sidebarTexts.forEach(text => {
+                text.classList.toggle('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

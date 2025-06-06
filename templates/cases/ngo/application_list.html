@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Case Applications</h1>
+    
+    {% for application in applications %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Application from {{ application.lawyer.get_full_name }}</h5>
+                <p class="card-text">{{ application.message }}</p>
+                <p class="card-text">Applied on: {{ application.created_at|date:"F d, Y" }}</p>
+                
+                {# This line is likely causing the error #}
+                <a href="{% url 'accounts:lawyer_profile' %}" class="btn btn-info">View Lawyer Profile</a>
+                
+                {% if application.status == 'PENDING' %}
+                    <form method="post" action="{% url 'cases:approve_application' application.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'cases:reject_application' application.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </form>
+                {% else %}
+                    <span class="badge badge-{{ application.status|lower }}">{{ application.status }}</span>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="alert alert-info">No applications yet.</div>
+    {% endfor %}
+</div>
+{% endblock %}

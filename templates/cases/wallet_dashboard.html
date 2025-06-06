@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2>Your Token Wallet</h2>
+    <div class="card">
+        <div class="card-body">
+            <h4>Current Balance: {{ wallet.balance }} Tokens</h4>
+            <p>Earn tokens by contributing to cases, donating, or providing feedback.</p>
+        </div>
+    </div>
+
+    <h3>Transaction History</h3>
+    {% if page_obj %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in page_obj %}
+                    <tr>
+                        <td>{{ transaction.created_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ transaction.description }}</td>
+                        <td>
+                            {% if transaction.transaction_type == 'EARN' %}
+                                <span class="text-success">+{{ transaction.amount }}</span>
+                            {% else %}
+                                <span class="text-danger">-{{ transaction.amount }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if transaction.case %}
+                                <a href="{% url 'cases:case_detail' transaction.case.pk %}">{{ transaction.case.title }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <nav>
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <p>No transactions yet. Start contributing to earn tokens!</p>
+    {% endif %}
+{% endblock %}

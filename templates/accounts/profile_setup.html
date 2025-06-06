@@ -8,7 +8,7 @@
     {% elif user.role == 'DONOR' %}
         Donor Profile Setup
     {% endif %}
-    - Legal Platform
+    - HakiChain
 {% endblock %}
 
 {% block content %}
@@ -97,6 +97,294 @@
                             {% if form.verification_documents.errors %}
                                 <div class="invalid-feedback">{{ form.verification_documents.errors.0 }}</div>
                             {% endif %}
+                        </div>
+                    
+                    {% elif user.role == 'LAWYER' %}
+                        <div class="mb-3">
+                            <label for="{{ form.full_name.id_for_label }}" class="form-label">Full Name</label>
+                            <input type="text" class="form-control {% if form.full_name.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.full_name.id_for_label }}" name="{{ form.full_name.name }}"
+                                   value="{{ form.full_name.value|default:'' }}">
+                            {% if form.full_name.errors %}
+                                <div class="invalid-feedback">{{ form.full_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.profile_photo.id_for_label }}" class="form-label">Profile Photo</label>
+                            <input type="file" class="form-control {% if form.profile_photo.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.profile_photo.id_for_label }}" name="{{ form.profile_photo.name }}">
+                            {% if form.profile_photo.errors %}
+                                <div class="invalid-feedback">{{ form.profile_photo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.phone_number.id_for_label }}" name="{{ form.phone_number.name }}"
+                                   value="{{ form.phone_number.value|default:'' }}">
+                            {% if form.phone_number.errors %}
+                                <div class="invalid-feedback">{{ form.phone_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                            <input type="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.email.id_for_label }}" name="{{ form.email.name }}"
+                                   value="{{ form.email.value|default:'' }}">
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
+                            <input type="text" class="form-control {% if form.location.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.location.id_for_label }}" name="{{ form.location.name }}"
+                                   value="{{ form.location.value|default:'' }}">
+                            {% if form.location.errors %}
+                                <div class="invalid-feedback">{{ form.location.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.law_firm.id_for_label }}" class="form-label">Law Firm/Organization</label>
+                            <input type="text" class="form-control {% if form.law_firm.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.law_firm.id_for_label }}" name="{{ form.law_firm.name }}"
+                                   value="{{ form.law_firm.value|default:'' }}">
+                            {% if form.law_firm.errors %}
+                                <div class="invalid-feedback">{{ form.law_firm.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.bar_membership_id.id_for_label }}" class="form-label">Bar Association Membership ID</label>
+                            <input type="text" class="form-control {% if form.bar_membership_id.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.bar_membership_id.id_for_label }}" name="{{ form.bar_membership_id.name }}"
+                                   value="{{ form.bar_membership_id.value|default:'' }}">
+                            {% if form.bar_membership_id.errors %}
+                                <div class="invalid-feedback">{{ form.bar_membership_id.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.license_number.id_for_label }}" class="form-label">License Number</label>
+                            <input type="text" class="form-control {% if form.license_number.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.license_number.id_for_label }}" name="{{ form.license_number.name }}"
+                                   value="{{ form.license_number.value|default:'' }}">
+                            {% if form.license_number.errors %}
+                                <div class="invalid-feedback">{{ form.license_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.linkedin_profile.id_for_label }}" class="form-label">LinkedIn Profile (optional)</label>
+                            <input type="url" class="form-control {% if form.linkedin_profile.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.linkedin_profile.id_for_label }}" name="{{ form.linkedin_profile.name }}"
+                                   value="{{ form.linkedin_profile.value|default:'' }}">
+                            {% if form.linkedin_profile.errors %}
+                                <div class="invalid-feedback">{{ form.linkedin_profile.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.certification_uploads.id_for_label }}" class="form-label">License or Certification Uploads</label>
+                            <input type="file" class="form-control {% if form.certification_uploads.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.certification_uploads.id_for_label }}" name="{{ form.certification_uploads.name }}">
+                            {% if form.certification_uploads.errors %}
+                                <div class="invalid-feedback">{{ form.certification_uploads.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                    {% elif user.role == 'DONOR' %}
+                        <div class="mb-3">
+                            <label for="{{ form.full_name.id_for_label }}" class="form-label">Full Name / Organization Name</label>
+                            <input type="text" class="form-control {% if form.full_name.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.full_name.id_for_label }}" name="{{ form.full_name.name }}"
+                                   value="{{ form.full_name.value|default:'' }}">
+                            {% if form.full_name.errors %}
+                                <div class="invalid-feedback">{{ form.full_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.profile_photo.id_for_label }}" class="form-label">Profile Photo or Logo</label>
+                            <input type="file" class="form-control {% if form.profile_photo.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.profile_photo.id_for_label }}" name="{{ form.profile_photo.name }}">
+                            {% if form.profile_photo.errors %}
+                                <div class="invalid-feedback">{{ form.profile_photo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.donor_type.id_for_label }}" class="form-label">Type of Donor</label>
+                            <select class="form-select {% if form.donor_type.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.donor_type.id_for_label }}" name="{{ form.donor_type.name }}">
+                                <option value="">Select donor type</option>
+                                <option value="Individual" {% if form.donor_type.value == 'Individual' %}selected{% endif %}>Individual</option>
+                                <option value="Corporate" {% if form.donor_type.value == 'Corporate' %}selected{% endif %}>Corporate</option>
+                                <option value="NGO" {% if form.donor_type.value == 'NGO' %}selected{% endif %}>NGO</option>
+                                <option value="Foundation" {% if form.donor_type.value == 'Foundation' %}selected{% endif %}>Foundation</option>
+                            </select>
+                            {% if form.donor_type.errors %}
+                                <div class="invalid-feedback">{{ form.donor_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.contact_person.id_for_label }}" class="form-label">Contact Person (for organizations)</label>
+                            <input type="text" class="form-control {% if form.contact_person.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.contact_person.id_for_label }}" name="{{ form.contact_person.name }}"
+                                   value="{{ form.contact_person.value|default:'' }}">
+                            {% if form.contact_person.errors %}
+                                <div class="invalid-feedback">{{ form.contact_person.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.phone_number.id_for_label }}" name="{{ form.phone_number.name }}"
+                                   value="{{ form.phone_number.value|default:'' }}">
+                            {% if form.phone_number.errors %}
+                                <div class="invalid-feedback">{{ form.phone_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                            <input type="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.email.id_for_label }}" name="{{ form.email.name }}"
+                                   value="{{ form.email.value|default:'' }}">
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.address.id_for_label }}" class="form-label">Physical Address</label>
+                            <textarea class="form-control {% if form.address.errors %}is-invalid{% endif %}" 
+                                      id="{{ form.address.id_for_label }}" name="{{ form.address.name }}" 
+                                      rows="3">{{ form.address.value|default:'' }}</textarea>
+                            {% if form.address.errors %}
+                                <div class="invalid-feedback">{{ form.address.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.country.id_for_label }}" class="form-label">Country</label>
+                                <input type="text" class="form-control {% if form.country.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.country.id_for_label }}" name="{{ form.country.name }}"
+                                       value="{{ form.country.value|default:'' }}">
+                                {% if form.country.errors %}
+                                    <div class="invalid-feedback">{{ form.country.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
+                                <input type="text" class="form-control {% if form.city.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.city.id_for_label }}" name="{{ form.city.name }}"
+                                       value="{{ form.city.value|default:'' }}">
+                                {% if form.city.errors %}
+                                    <div class="invalid-feedback">{{ form.city.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.preferred_causes.id_for_label }}" class="form-label">Preferred Causes</label>
+                            <select class="form-select {% if form.preferred_causes.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.preferred_causes.id_for_label }}" name="{{ form.preferred_causes.name }}" multiple>
+                                <option value="Education" {% if 'Education' in form.preferred_causes.value %}selected{% endif %}>Education</option>
+                                <option value="Health" {% if 'Health' in form.preferred_causes.value %}selected{% endif %}>Health</option>
+                                <option value="Disaster Relief" {% if 'Disaster Relief' in form.preferred_causes.value %}selected{% endif %}>Disaster Relief</option>
+                                <option value="Women Empowerment" {% if 'Women Empowerment' in form.preferred_causes.value %}selected{% endif %}>Women Empowerment</option>
+                                <option value="Environment" {% if 'Environment' in form.preferred_causes.value %}selected{% endif %}>Environment</option>
+                                <option value="Children" {% if 'Children' in form.preferred_causes.value %}selected{% endif %}>Children</option>
+                                <option value="Human Rights" {% if 'Human Rights' in form.preferred_causes.value %}selected{% endif %}>Human Rights</option>
+                            </select>
+                            <div class="form-text">Hold Ctrl (or Cmd on Mac) to select multiple options</div>
+                            {% if form.preferred_causes.errors %}
+                                <div class="invalid-feedback">{{ form.preferred_causes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.preferred_donation_method.id_for_label }}" class="form-label">Preferred Donation Method</label>
+                            <select class="form-select {% if form.preferred_donation_method.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.preferred_donation_method.id_for_label }}" name="{{ form.preferred_donation_method.name }}">
+                                <option value="">Select donation method</option>
+                                <option value="Mobile Money" {% if form.preferred_donation_method.value == 'Mobile Money' %}selected{% endif %}>Mobile Money</option>
+                                <option value="Card" {% if form.preferred_donation_method.value == 'Card' %}selected{% endif %}>Card</option>
+                                <option value="Bank Transfer" {% if form.preferred_donation_method.value == 'Bank Transfer' %}selected{% endif %}>Bank Transfer</option>
+                                <option value="In-kind" {% if form.preferred_donation_method.value == 'In-kind' %}selected{% endif %}>In-kind</option>
+                            </select>
+                            {% if form.preferred_donation_method.errors %}
+                                <div class="invalid-feedback">{{ form.preferred_donation_method.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.giving_frequency.id_for_label }}" class="form-label">Frequency of Giving</label>
+                            <select class="form-select {% if form.giving_frequency.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.giving_frequency.id_for_label }}" name="{{ form.giving_frequency.name }}">
+                                <option value="">Select frequency</option>
+                                <option value="One-time" {% if form.giving_frequency.value == 'One-time' %}selected{% endif %}>One-time</option>
+                                <option value="Monthly" {% if form.giving_frequency.value == 'Monthly' %}selected{% endif %}>Monthly</option>
+                                <option value="Quarterly" {% if form.giving_frequency.value == 'Quarterly' %}selected{% endif %}>Quarterly</option>
+                                <option value="Annually" {% if form.giving_frequency.value == 'Annually' %}selected{% endif %}>Annually</option>
+                            </select>
+                            {% if form.giving_frequency.errors %}
+                                <div class="invalid-feedback">{{ form.giving_frequency.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Anonymous Donor?</label>
+                            <div class="form-check">
+                                <input class="form-check-input {% if form.is_anonymous.errors %}is-invalid{% endif %}" 
+                                       type="checkbox" id="{{ form.is_anonymous.id_for_label }}" 
+                                       name="{{ form.is_anonymous.name }}" {% if form.is_anonymous.value %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ form.is_anonymous.id_for_label }}">
+                                    Yes, I prefer to remain anonymous
+                                </label>
+                                {% if form.is_anonymous.errors %}
+                                    <div class="invalid-feedback">{{ form.is_anonymous.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.preferred_communication.id_for_label }}" class="form-label">Preferred Mode of Communication</label>
+                            <select class="form-select {% if form.preferred_communication.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.preferred_communication.id_for_label }}" name="{{ form.preferred_communication.name }}">
+                                <option value="">Select communication method</option>
+                                <option value="SMS" {% if form.preferred_communication.value == 'SMS' %}selected{% endif %}>SMS</option>
+                                <option value="Email" {% if form.preferred_communication.value == 'Email' %}selected{% endif %}>Email</option>
+                                <option value="Phone" {% if form.preferred_communication.value == 'Phone' %}selected{% endif %}>Phone</option>
+                            </select>
+                            {% if form.preferred_communication.errors %}
+                                <div class="invalid-feedback">{{ form.preferred_communication.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Newsletter Subscription</label>
+                            <div class="form-check">
+                                <input class="form-check-input {% if form.newsletter_subscription.errors %}is-invalid{% endif %}" 
+                                       type="checkbox" id="{{ form.newsletter_subscription.id_for_label }}" 
+                                       name="{{ form.newsletter_subscription.name }}" {% if form.newsletter_subscription.value %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ form.newsletter_subscription.id_for_label }}">
+                                    Yes, I want to receive newsletters
+                                </label>
+                                {% if form.newsletter_subscription.errors %}
+                                    <div class="invalid-feedback">{{ form.newsletter_subscription.errors.0 }}</div>
+                                {% endif %}
+                            </div>
                         </div>
                     {% endif %}
 
