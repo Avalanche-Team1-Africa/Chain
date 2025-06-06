@@ -97,36 +97,36 @@ WSGI_APPLICATION = 'HakiChain.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Chain',
-        'USER': 'subchief',
-        'PASSWORD': 'Chain2025',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
-
-
-
-
-
-
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'Chain',
+#         'USER': 'subchief',
+#         'PASSWORD': 'Chain2025',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
 #     }
 # }
 
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default=config('DATABASE_URL'),
-#         conn_max_age=600
-#     )
-# }
+
+
+
+
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL'),
+        conn_max_age=600
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -212,9 +212,8 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_REDIRECT_URL = 'accounts:dashboard'
 
 # # Africa's Talking
-# AFRICASTALKING_USERNAME = config('AFRICASTALKING_USERNAME')
-# AFRICASTALKING_API_KEY = config('AFRICASTALKING_API_KEY')
-
+AFRICASTALKING_USERNAME = config('AFRICASTALKING_USERNAME')
+AFRICASTALKING_API_KEY = config('AFRICASTALKING_API_KEY')
 
 
 
@@ -235,6 +234,8 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 
 
+PAYSTACK_SECRET_KEY = 'sk_live_054436278c8f761a4564228ad4ac60c39995024d'
+PAYSTACK_PUBLIC_KEY = 'pk_live_3ac85002a665048c363ad439bc409e06c03f97ae'  
 
 # URLs for Paystack endpoints are hardcoded in the views, but you can add them here as well
 PAYSTACK_API_URL = 'https://api.paystack.co'
