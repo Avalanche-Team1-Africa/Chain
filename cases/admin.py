@@ -1,30 +1,26 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
-
 from .models import (
     Case, CaseMilestone, CaseEvent, CaseMessage,
     CaseMessageAttachment, CaseDocument, DocumentTemplate,
+    CaseCategory,  # Added CaseCategory import
 )
-
 
 class CaseMilestoneInline(admin.TabularInline):
     """Inline admin for CaseMilestone."""
     model = CaseMilestone
     extra = 0
 
-
 class CaseEventInline(admin.TabularInline):
     """Inline admin for CaseEvent."""
     model = CaseEvent
     extra = 0
 
-
 class CaseDocumentInline(admin.TabularInline):
     """Inline admin for CaseDocument."""
     model = CaseDocument
     extra = 0
-
 
 @admin.register(Case)
 class CaseAdmin(admin.ModelAdmin):
@@ -32,16 +28,14 @@ class CaseAdmin(admin.ModelAdmin):
     # Removed 'reference_number' which isn't a field on Case model
     list_display = ('id', 'title', 'ngo', 'assigned_lawyer', 'status', 'created_at')
     list_filter = ('status', 'created_at')
-    search_fields = ('title', 'description')  # Removed 'reference_number'
+    search_fields = ('title', 'description') # Removed 'reference_number'
     inlines = [CaseMilestoneInline, CaseEventInline, CaseDocumentInline]
     date_hierarchy = 'created_at'
-
 
 class CaseMessageAttachmentInline(admin.TabularInline):
     """Inline admin for CaseMessageAttachment."""
     model = CaseMessageAttachment
     extra = 0
-
 
 @admin.register(CaseMessage)
 class CaseMessageAdmin(admin.ModelAdmin):
@@ -52,7 +46,6 @@ class CaseMessageAdmin(admin.ModelAdmin):
     inlines = [CaseMessageAttachmentInline]
     date_hierarchy = 'timestamp'
 
-
 @admin.register(CaseEvent)
 class CaseEventAdmin(admin.ModelAdmin):
     """Admin for the CaseEvent model."""
@@ -61,16 +54,14 @@ class CaseEventAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description')
     date_hierarchy = 'start_time'
 
-
 @admin.register(CaseDocument)
 class CaseDocumentAdmin(admin.ModelAdmin):
     """Admin for the CaseDocument model."""
     # Removed 'document_type' and 'uploaded_by' which aren't fields on CaseDocument
     list_display = ('name', 'case', 'uploaded_at')
-    list_filter = ('uploaded_at',)  # Removed 'document_type'
+    list_filter = ('uploaded_at',) # Removed 'document_type'
     search_fields = ('name', 'notes')
     date_hierarchy = 'uploaded_at'
-
 
 @admin.register(DocumentTemplate)
 class DocumentTemplateAdmin(admin.ModelAdmin):
@@ -79,9 +70,13 @@ class DocumentTemplateAdmin(admin.ModelAdmin):
     list_filter = ('available_to_ngo', 'available_to_lawyer', 'created_at')
     search_fields = ('name', 'description')
 
-
-    
-
+@admin.register(CaseCategory)
+class CaseCategoryAdmin(admin.ModelAdmin):
+    """Admin for the CaseCategory model."""
+    list_display = ('name', 'description')
+    search_fields = ('name', 'description')
+    list_per_page = 25
+    ordering = ('name',)
 
 # Register remaining models if needed
 admin.site.register(CaseMilestone)
