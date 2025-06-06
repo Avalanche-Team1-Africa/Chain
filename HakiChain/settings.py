@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'channels',
     'crispy_forms',
     'crispy_bootstrap5',
-    'notifications', 
+    # 'notifications', 
     'multiupload',
     
 ]
