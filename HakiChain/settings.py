@@ -97,36 +97,29 @@ WSGI_APPLICATION = 'HakiChain.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'Chain',
-#         'USER': 'subchief',
-#         'PASSWORD': 'Chain2025',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
+# First try DATABASE_URL, then fall back to individual environment variables
+DATABASE_URL = config('DATABASE_URL', default=None)
 
-
-
-
-
-
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL'),
-        conn_max_age=600
-    )
-}
+if DATABASE_URL:
+    # Using DATABASE_URL (preferred for production)
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    }
+else:
+    # Using individual environment variables with fallbacks
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME', default='Chain'),
+            'USER': config('DB_USER', default='subchief'),
+            'PASSWORD': config('DB_PASSWORD', default='Chain2025'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
+            'OPTIONS': {
+                'connect_timeout': 10,
+            },
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
