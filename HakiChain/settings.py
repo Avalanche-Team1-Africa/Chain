@@ -114,12 +114,12 @@ WSGI_APPLICATION = 'HakiChain.wsgi.application'
 
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -231,11 +231,6 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 
 
-
-
-
-PAYSTACK_SECRET_KEY = 'sk_live_054436278c8f761a4564228ad4ac60c39995024d'
-PAYSTACK_PUBLIC_KEY = 'pk_live_3ac85002a665048c363ad439bc409e06c03f97ae'  
 
 # URLs for Paystack endpoints are hardcoded in the views, but you can add them here as well
 PAYSTACK_API_URL = 'https://api.paystack.co'
