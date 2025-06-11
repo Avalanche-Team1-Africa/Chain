@@ -3,130 +3,229 @@
 
 {% block title %}Create New Case{% endblock %}
 
+{% block extra_css %}
+<style>
+  body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .container.mt-4 {
+    max-width: 900px;
+    margin-top: 60px !important;
+  }
+
+  h1 {
+    color: #023e8a;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+  }
+
+  .card {
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+
+  .card-header {
+    background-color: #0077b6;
+    color: white;
+    font-weight: bold;
+    padding: 1rem 1.5rem;
+  }
+
+  .form-group label {
+    font-weight: 600;
+    color: #023e8a;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  textarea,
+  select {
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ced4da;
+  }
+
+  .milestone-item {
+    border-left: 5px solid #ffd700;
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .milestone-item:hover {
+    transform: scale(1.01);
+  }
+
+  .milestone-number {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #0077b6;
+  }
+
+  .btn-primary {
+    background-color: #ffd700;
+    border: none;
+    color: #000;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: #b7950b;
+    color: #fff;
+  }
+
+  .btn-danger {
+    background-color: #ef233c;
+    border: none;
+    font-size: 0.8rem;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-danger:hover {
+    background-color: #d90429;
+  }
+
+  .text-muted {
+    font-size: 0.95rem;
+  }
+
+  .text-end {
+    text-align: right;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .col-md-6 {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+
+    .text-end {
+      text-align: center;
+    }
+
+    .btn {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h1>Create New Case</h1>
-    
-    <form method="post" class="mt-4">
-        {% csrf_token %}
-        
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3>Case Details</h3>
-            </div>
-            <div class="card-body">
-                {{ form|crispy }}
-            </div>
-        </div>
-        
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h3>Case Milestones</h3>
-                <button type="button" class="btn btn-sm btn-primary" id="add-milestone">Add Milestone</button>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Define key milestones that should be achieved during this case.</p>
-                
-                <div id="milestones-container">
-                    <!-- Milestone fields will be added here dynamically -->
-                </div>
-                
-                <input type="hidden" name="milestone_count" id="milestone-count" value="0">
-            </div>
-        </div>
-        
-        <div class="text-end">
-            <a href="{% url 'cases:list_cases' %}" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">Create Case</button>
-        </div>
-    </form>
+  <h1>Create New Case</h1>
+
+  <form method="post" class="mt-4">
+    {% csrf_token %}
+
+    <!-- Case Details Card -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h3>Case Details</h3>
+      </div>
+      <div class="card-body">
+        {{ form|crispy }}
+      </div>
+    </div>
+
+    <!-- Milestones Card -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>Case Milestones</h3>
+        <button type="button" class="btn btn-primary btn-sm" id="add-milestone">Add Milestone</button>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">Define key milestones that should be achieved during this case.</p>
+        <div id="milestones-container"></div>
+        <input type="hidden" name="milestone_count" id="milestone-count" value="0">
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="text-end">
+      <a href="{% url 'cases:list_cases' %}" class="btn btn-secondary me-2">Cancel</a>
+      <button type="submit" class="btn btn-primary">Create Case</button>
+    </div>
+  </form>
 </div>
 
+<!-- Milestone Template -->
 <template id="milestone-template">
-    <div class="milestone-item card mb-3">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <h5 class="milestone-number">Milestone #INDEX</h5>
-                <button type="button" class="btn btn-sm btn-danger remove-milestone">Remove</button>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="milestone_title_INDEX">Milestone Title *</label>
-                        <input type="text" name="milestone_title_INDEX" class="form-control" required>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="milestone_date_INDEX">Target Date *</label>
-                        <input type="date" name="milestone_date_INDEX" class="form-control" required>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-group mt-3">
-                <label for="milestone_description_INDEX">Description</label>
-                <textarea name="milestone_description_INDEX" class="form-control" rows="2"></textarea>
-            </div>
+  <div class="milestone-item card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <h5 class="milestone-number">Milestone #INDEX</h5>
+        <button type="button" class="btn btn-sm btn-danger remove-milestone">Remove</button>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="milestone_title_INDEX">Milestone Title *</label>
+            <input type="text" name="milestone_title_INDEX" class="form-control" required>
+          </div>
         </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="milestone_date_INDEX">Target Date *</label>
+            <input type="date" name="milestone_date_INDEX" class="form-control" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group mt-3">
+        <label for="milestone_description_INDEX">Description</label>
+        <textarea name="milestone_description_INDEX" class="form-control" rows="2"></textarea>
+      </div>
     </div>
+  </div>
 </template>
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const milestonesContainer = document.getElementById('milestones-container');
-        const milestoneTemplate = document.getElementById('milestone-template');
-        const addMilestoneBtn = document.getElementById('add-milestone');
-        const milestoneCountInput = document.getElementById('milestone-count');
-        
-        let milestoneCount = 0;
-        
-        // Function to add a new milestone
-        function addMilestone() {
-            const milestoneIndex = milestoneCount;
-            const newMilestoneHtml = milestoneTemplate.innerHTML
-                .replace(/INDEX/g, milestoneIndex);
-            
-            // Create element from HTML string
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = newMilestoneHtml;
-            const newMilestone = tempDiv.firstElementChild;
-            
-            // Add event listener to remove button
-            const removeBtn = newMilestone.querySelector('.remove-milestone');
-            removeBtn.addEventListener('click', function() {
-                newMilestone.remove();
-                updateMilestoneNumbers();
-            });
-            
-            // Add the new milestone to the container
-            milestonesContainer.appendChild(newMilestone);
-            milestoneCount++;
-            milestoneCountInput.value = milestoneCount;
-            
-            updateMilestoneNumbers();
-        }
-        
-        // Function to update milestone numbers
-        function updateMilestoneNumbers() {
-            const milestones = milestonesContainer.querySelectorAll('.milestone-item');
-            milestones.forEach((milestone, index) => {
-                milestone.querySelector('.milestone-number').textContent = `Milestone #${index + 1}`;
-            });
-            
-            // Update milestone count
-            milestoneCountInput.value = milestones.length;
-        }
-        
-        // Event listener for add milestone button
-        addMilestoneBtn.addEventListener('click', addMilestone);
-        
-        // Add an initial milestone for convenience
-        addMilestone();
-    });
+  document.addEventListener('DOMContentLoaded', function () {
+    const milestonesContainer = document.getElementById('milestones-container');
+    const milestoneTemplate = document.getElementById('milestone-template').content;
+    const addMilestoneBtn = document.getElementById('add-milestone');
+    const milestoneCountInput = document.getElementById('milestone-count');
+
+    let milestoneCount = 0;
+
+    function addMilestone() {
+      const index = milestoneCount++;
+      const clone = document.importNode(milestoneTemplate, true);
+
+      // Replace INDEX with actual index in HTML
+      const htmlString = new XMLSerializer().serializeToString(clone).replace(/INDEX/g, index);
+      const temp = document.createElement('div');
+      temp.innerHTML = htmlString;
+      const milestoneEl = temp.firstElementChild;
+
+      // Attach remove event
+      milestoneEl.querySelector('.remove-milestone').addEventListener('click', function () {
+        milestoneEl.remove();
+        updateMilestoneNumbers();
+      });
+
+      milestonesContainer.appendChild(milestoneEl);
+      updateMilestoneNumbers();
+      milestoneCountInput.value = milestoneCount;
+    }
+
+    function updateMilestoneNumbers() {
+      const milestones = milestonesContainer.querySelectorAll('.milestone-item');
+      milestones.forEach((el, idx) => {
+        el.querySelector('.milestone-number').textContent = `Milestone #${idx + 1}`;
+      });
+      milestoneCountInput.value = milestones.length;
+    }
+
+    addMilestoneBtn.addEventListener('click', addMilestone);
+    addMilestone(); // Add one by default
+  });
 </script>
 {% endblock %}
