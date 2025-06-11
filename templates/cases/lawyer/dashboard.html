@@ -363,87 +363,51 @@
     }
 
     /* Responsive Design */
-    @media (max-width: 992px) {
-        .sidebar {
-            width: 80px;
-            padding: 15px 5px;
-        }
+   * ============ MEDIA QUERIES ============ */
 
-        .sidebar .nav-link span,
-        .logo span {
-            display: none;
-        }
+  .stat-value {
+    font-size: 24px;
+  }
 
-        .sidebar .nav-link {
-            padding: 12px;
-            justify-content: center;
-        }
+  .rank {
+    display: inline-block;
+  }
 
-        .sidebar .nav-link i {
-            margin-right: 0;
-            font-size: 20px;
-        }
+  .card-body {
+    padding: 1rem;
+  }
 
-        .main {
-            margin-left: 80px;
-            width: calc(100% - 80px);
-        }
+  .badge {
+    font-size: 0.8rem;
+  }
 
-        .profile {
-            display: none;
-        }
-    }
+  .lawyer-name {
+    font-size: 1rem;
+  }
 
-    @media (max-width: 768px) {
-        .sidebar {
-            width: 100%;
-            height: auto;
-            position: relative;
-            padding: 10px 15px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-        }
+  .table {
+    font-size: 0.9rem;
+  }
 
-        .logo {
-            width: auto;
-            border-bottom: none;
-            margin-bottom: 0;
-            padding: 10px 0;
-        }
 
-        .sidebar .nav-link {
-            display: block;
-            width: auto;
-            margin-right: 5px;
-            padding: 8px 12px;
-            font-size: 12px;
-        }
+/* ----------- Large Devices (Desktops ≥ 1200px) ----------- */
+@media (min-width: 1200px) {
+  .stat-value {
+    font-size: 30px;
+  }
 
-        .sidebar .nav-link i {
-            margin-right: 5px;
-            font-size: 14px;
-        }
+  .page-title {
+    font-size: 28px;
+  }
 
-        .sidebar .nav-link span {
-            display: inline;
-        }
+  .form-control {
+    font-size: 1rem;
+  }
 
-        .main {
-            margin-left: 0;
-            width: 100%;
-            padding: 15px;
-        }
+  .badge {
+    font-size: 0.9rem;
+  }
 
-        .search-box {
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        .header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
     }
 </style>
 {% endblock %}
